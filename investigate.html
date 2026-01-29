@@ -1,0 +1,2770 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Investigate - TACC</title>
+    <link rel="icon" type="image/x-icon" href="assets/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="assets/favicon-16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="assets/apple-touch-icon.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css?v=46">
+    <!-- FingerprintJS for browser identification -->
+    <script src="https://cdn.jsdelivr.net/npm/@fingerprintjs/fingerprintjs@3/dist/fp.min.js"></script>
+    <style>
+        .explorer-section {
+            padding: 8rem 0 4rem 0;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9ff 100%);
+        }
+
+        .explorer-header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .explorer-header h1 {
+            font-size: 2.5rem;
+            color: var(--text-color);
+            margin-bottom: 1rem;
+        }
+
+        .explorer-header p {
+            color: var(--text-light);
+            font-size: 1.1rem;
+        }
+
+        .search-container {
+            max-width: 700px;
+            margin: 0 auto 3rem auto;
+        }
+
+        .search-box {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .search-box input {
+            flex: 1;
+            min-width: 250px;
+            padding: 1rem 1.5rem;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 1rem;
+            font-family: 'Inter', monospace;
+            transition: var(--transition);
+        }
+
+        .search-box input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(137, 63, 247, 0.1);
+        }
+
+        .search-box button {
+            padding: 1rem 2rem;
+            background: var(--gradient-primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .search-box button:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .search-box button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .network-selector {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .network-btn {
+            padding: 0.5rem 1.5rem;
+            border: 2px solid var(--border-color);
+            background: white;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: var(--transition);
+        }
+
+        .network-btn:hover {
+            border-color: var(--primary-color);
+        }
+
+        .network-btn.active {
+            background: var(--primary-color);
+            border-color: var(--primary-color);
+            color: white;
+        }
+
+        .results-container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .result-card {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 1.5rem;
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--border-color);
+        }
+
+        .result-card h3 {
+            color: var(--primary-color);
+            margin-bottom: 1.5rem;
+            font-size: 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .result-card h3 .icon {
+            width: 24px;
+            height: 24px;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .info-item {
+            padding: 1rem;
+            background: var(--light-purple);
+            border-radius: 8px;
+        }
+
+        .info-item .label {
+            font-size: 0.85rem;
+            color: var(--text-light);
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .info-item .value {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-color);
+            word-break: break-all;
+        }
+
+        .info-item .value.large {
+            font-size: 1.5rem;
+        }
+
+        .token-list {
+            margin-top: 1rem;
+        }
+
+        .token-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .token-item:last-child {
+            border-bottom: none;
+        }
+
+        .token-info {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .token-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: var(--light-purple);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 0.8rem;
+            color: var(--primary-color);
+        }
+
+        .token-name {
+            font-weight: 500;
+        }
+
+        .token-symbol {
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+
+        .token-balance {
+            text-align: right;
+        }
+
+        .token-balance .amount {
+            font-weight: 600;
+        }
+
+        .token-balance .usd {
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+
+        .tx-list {
+            margin-top: 1rem;
+        }
+
+        .tx-item {
+            padding: 1rem;
+            border-bottom: 1px solid var(--border-color);
+            display: grid;
+            grid-template-columns: auto 1fr auto;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .tx-item:last-child {
+            border-bottom: none;
+        }
+
+        .tx-type {
+            padding: 0.25rem 0.75rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .tx-type.in {
+            background: #d1fae5;
+            color: #059669;
+        }
+
+        .tx-type.out {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        .tx-type.contract {
+            background: var(--light-purple);
+            color: var(--primary-color);
+        }
+
+        .tx-details {
+            min-width: 0;
+        }
+
+        .tx-hash {
+            font-family: monospace;
+            font-size: 0.9rem;
+            color: var(--primary-color);
+            text-decoration: none;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            display: block;
+        }
+
+        .tx-hash:hover {
+            text-decoration: underline;
+        }
+
+        .tx-time {
+            color: var(--text-light);
+            font-size: 0.85rem;
+        }
+
+        .tx-value {
+            text-align: right;
+            font-weight: 500;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 3rem;
+            color: var(--text-light);
+        }
+
+        .loading .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--border-color);
+            border-top-color: var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem auto;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .error-message {
+            background: #fee2e2;
+            color: #dc2626;
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: var(--text-light);
+        }
+
+        .empty-state svg {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        .contract-info {
+            margin-top: 1rem;
+        }
+
+        .contract-badge {
+            display: inline-block;
+            background: var(--primary-color);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: 500;
+            margin-bottom: 2rem;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 768px) {
+            .explorer-header h1 {
+                font-size: 1.75rem;
+            }
+
+            .search-box {
+                flex-direction: column;
+            }
+
+            .search-box button {
+                width: 100%;
+            }
+
+            .tx-item {
+                grid-template-columns: 1fr;
+                gap: 0.5rem;
+            }
+
+            .tx-value {
+                text-align: left;
+            }
+        }
+
+        /* Auth Modal Styles */
+        .auth-modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 10000;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(4px);
+        }
+
+        .auth-modal-overlay.active {
+            display: flex;
+        }
+
+        .auth-modal {
+            background: white;
+            border-radius: 16px;
+            padding: 2.5rem;
+            max-width: 450px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            animation: modalSlideIn 0.3s ease;
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .auth-modal-header {
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .auth-modal-header h2 {
+            font-size: 1.5rem;
+            color: var(--text-color);
+            margin-bottom: 0.5rem;
+        }
+
+        .auth-modal-header p {
+            color: var(--text-light);
+            font-size: 0.95rem;
+        }
+
+        .auth-tabs {
+            display: flex;
+            border-bottom: 2px solid var(--border-color);
+            margin-bottom: 1.5rem;
+        }
+
+        .auth-tab {
+            flex: 1;
+            padding: 0.75rem;
+            border: none;
+            background: none;
+            font-size: 1rem;
+            font-weight: 500;
+            color: var(--text-light);
+            cursor: pointer;
+            transition: var(--transition);
+            position: relative;
+        }
+
+        .auth-tab.active {
+            color: var(--primary-color);
+        }
+
+        .auth-tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--primary-color);
+        }
+
+        .auth-form {
+            display: none;
+        }
+
+        .auth-form.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 1.25rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: var(--text-color);
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 0.875rem 1rem;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: var(--transition);
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(137, 63, 247, 0.1);
+        }
+
+        .form-group input.error {
+            border-color: #dc2626;
+        }
+
+        .password-requirements {
+            font-size: 0.8rem;
+            color: var(--text-light);
+            margin-top: 0.5rem;
+        }
+
+        .password-requirements li {
+            margin: 0.25rem 0;
+            padding-left: 1.25rem;
+            position: relative;
+        }
+
+        .password-requirements li::before {
+            content: '○';
+            position: absolute;
+            left: 0;
+            color: var(--text-light);
+        }
+
+        .password-requirements li.valid::before {
+            content: '✓';
+            color: #059669;
+        }
+
+        .auth-error {
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            color: #dc2626;
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+            display: none;
+        }
+
+        .auth-error.visible {
+            display: block;
+        }
+
+        .auth-success {
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            color: #059669;
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+            display: none;
+        }
+
+        .auth-success.visible {
+            display: block;
+        }
+
+        .auth-submit {
+            width: 100%;
+            padding: 1rem;
+            background: var(--gradient-primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .auth-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .auth-submit:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .auth-cancel {
+            width: 100%;
+            padding: 0.75rem;
+            background: transparent;
+            color: var(--text-light);
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: var(--transition);
+            margin-top: 0.75rem;
+        }
+
+        .auth-cancel:hover {
+            background: #f5f5f5;
+            border-color: #ccc;
+        }
+
+        .auth-footer {
+            text-align: center;
+            margin-top: 1rem;
+            font-size: 0.9rem;
+            color: var(--text-light);
+        }
+
+        .auth-footer a {
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .query-status {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: var(--light-purple);
+            border-radius: 8px;
+            font-size: 0.85rem;
+            margin-bottom: 1rem;
+        }
+
+        .query-status.logged-in {
+            background: #f0fdf4;
+            color: #059669;
+        }
+
+        .query-status .logout-btn {
+            margin-left: auto;
+            padding: 0.25rem 0.75rem;
+            background: none;
+            border: 1px solid currentColor;
+            border-radius: 4px;
+            color: inherit;
+            font-size: 0.8rem;
+            cursor: pointer;
+        }
+
+        .query-status.superuser {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            color: #92400e;
+            border: 1px solid #f59e0b;
+        }
+
+        .superuser-badge {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            color: white;
+            padding: 0.15rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: bold;
+            margin-right: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation (loaded dynamically) -->
+    <div id="navbar-placeholder"></div>
+
+    <!-- Explorer Section -->
+    <section class="explorer-section">
+        <div class="container">
+            <a href="index.html" class="back-link">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M19 12H5M12 19l-7-7 7-7"/>
+                </svg>
+                <span data-i18n="explorer.back">Back to Home</span>
+            </a>
+
+            <div class="explorer-header">
+                <h1 data-i18n="explorer.title">Blockchain Explorer</h1>
+                <p data-i18n="explorer.subtitle">Enter a wallet address or contract address to view blockchain data</p>
+            </div>
+
+            <div class="search-container">
+                <div class="search-box">
+                    <input type="text" id="addressInput" placeholder="Enter any blockchain address (EVM, Bitcoin, Solana, etc.)" autocomplete="off">
+                    <button id="searchBtn" data-i18n="explorer.search">Investigate</button>
+                </div>
+                <div style="text-align: center; margin-top: 1rem;">
+                    <a href="query-history.html" target="_blank" style="color: var(--primary-color); text-decoration: none; font-size: 0.9rem; display: inline-flex; align-items: center; gap: 0.5rem;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"/>
+                            <polyline points="12 6 12 12 16 14"/>
+                        </svg>
+                        Query History
+                    </a>
+                </div>
+            </div>
+
+            <div class="results-container" id="results">
+                <div class="empty-state">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <circle cx="11" cy="11" r="8"/>
+                        <path d="M21 21l-4.35-4.35"/>
+                    </svg>
+                    <p data-i18n="explorer.emptyState">Enter an address above to get started</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-brand">
+                    <h3>TACC</h3>
+                    <p data-i18n="footer.tagline">The Americas Consulting Company</p>
+                    <p data-i18n="footer.description">Transforming organizations through strategic talent, technology, and services.</p>
+                </div>
+                <div class="footer-links">
+                    <div class="link-group">
+                        <h4 data-i18n="footer.quickLinks">Quick Links</h4>
+                        <a href="index.html" data-i18n="footer.home">Home</a>
+                        <a href="index.html#services" data-i18n="footer.services">Services</a>
+                        <a href="index.html#contact" data-i18n="footer.contact">Contact</a>
+                    </div>
+                    <div class="link-group">
+                        <h4 data-i18n="footer.getInTouch">Get In Touch</h4>
+                        <a href="mailto:hello@theamericasconsulting.com" data-i18n="footer.emailUs">Email Us</a>
+                        <a href="tel:+59892766400" data-i18n="footer.callUs">Call Us</a>
+                        <h4 data-i18n="footer.socialNetworks" style="margin-top: 1.5rem;">Social Networks</h4>
+                        <a href="https://www.linkedin.com/company/the-americas-consulting-company" target="_blank" rel="noopener noreferrer" data-i18n="footer.linkedinEN">LinkedIn (EN)</a>
+                        <a href="https://www.linkedin.com/company/the-americas-consulting-esp" target="_blank" rel="noopener noreferrer" data-i18n="footer.linkedinES">LinkedIn (ES)</a>
+                        <a href="https://www.instagram.com/theamericasconsulting/" target="_blank" rel="noopener noreferrer" data-i18n="footer.instagramEN">Instagram (EN)</a>
+                        <a href="https://www.instagram.com/theamericasconsulting.esp" target="_blank" rel="noopener noreferrer" data-i18n="footer.instagramES">Instagram (ES)</a>
+                        <a href="https://www.facebook.com/profile.php?id=61584582306574" target="_blank" rel="noopener noreferrer" data-i18n="footer.facebookES">Facebook (ES)</a>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p data-i18n="footer.copyright">&copy; 2024 The Americas Consulting Company. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Auth Modal -->
+    <div id="authModal" class="auth-modal-overlay">
+        <div class="auth-modal">
+            <div class="auth-modal-header">
+                <h2 id="authModalTitle">Login</h2>
+                <p id="authModalSubtitle">Sign in to continue your blockchain investigations</p>
+            </div>
+
+            <div class="auth-tabs">
+                <button class="auth-tab" data-tab="register">Register</button>
+                <button class="auth-tab active" data-tab="login">Login</button>
+            </div>
+
+            <div id="authError" class="auth-error"></div>
+            <div id="authSuccess" class="auth-success"></div>
+
+            <!-- Register Form -->
+            <form id="registerForm" class="auth-form">
+                <div class="form-group">
+                    <label for="registerEmail">Email</label>
+                    <input type="email" id="registerEmail" placeholder="your@email.com" required>
+                </div>
+                <div class="form-group">
+                    <label for="registerPassword">Password</label>
+                    <input type="password" id="registerPassword" placeholder="Create a strong password" required>
+                    <ul class="password-requirements" id="passwordRequirements">
+                        <li id="req-length">At least 12 characters</li>
+                        <li id="req-letter">At least one letter</li>
+                        <li id="req-number">At least one number</li>
+                        <li id="req-symbol">At least one symbol (!@#$%^&*)</li>
+                    </ul>
+                </div>
+                <div class="form-group">
+                    <label for="registerPasswordConfirm">Confirm Password</label>
+                    <input type="password" id="registerPasswordConfirm" placeholder="Confirm your password" required>
+                </div>
+                <button type="submit" class="auth-submit" id="registerSubmit">Create Account</button>
+            </form>
+
+            <!-- Login Form -->
+            <form id="loginForm" class="auth-form active">
+                <div class="form-group">
+                    <label for="loginEmail">Email</label>
+                    <input type="email" id="loginEmail" placeholder="your@email.com" required>
+                </div>
+                <div class="form-group">
+                    <label for="loginPassword">Password</label>
+                    <input type="password" id="loginPassword" placeholder="Your password" required>
+                </div>
+                <button type="submit" class="auth-submit" id="loginSubmit">Login</button>
+                <div class="auth-footer">
+                    <a href="#" id="forgotPasswordLink">Forgot password?</a>
+                </div>
+            </form>
+
+            <button type="button" class="auth-cancel" onclick="AuthSystem.hideAuthModal()">Cancel</button>
+        </div>
+    </div>
+
+    <script src="script.js?v=49"></script>
+    <script>
+        // ===========================================
+        // Authentication & Query Permission System
+        // ===========================================
+
+        const AuthSystem = {
+            visitorId: null,
+            authToken: null,
+            user: null,
+            queriesRemaining: 3,
+            initialized: false,
+            initComplete: false,  // Track when init is fully done
+
+            async init() {
+                if (this.initialized) return;
+                this.initialized = true;
+
+                // Check for existing session
+                this.authToken = localStorage.getItem('authToken');
+                const storedUser = localStorage.getItem('authUser');
+                if (storedUser) {
+                    try {
+                        this.user = JSON.parse(storedUser);
+                    } catch (e) {
+                        localStorage.removeItem('authUser');
+                    }
+                }
+
+                // Verify session is still valid
+                if (this.authToken) {
+                    try {
+                        const response = await fetch('/api/auth/me', {
+                            headers: { 'Authorization': `Bearer ${this.authToken}` }
+                        });
+                        if (response.ok) {
+                            const data = await response.json();
+                            this.user = data.user;
+                            localStorage.setItem('authUser', JSON.stringify(data.user));
+                        } else {
+                            this.logout(false);
+                        }
+                    } catch (e) {
+                        console.error('Session check failed:', e);
+                    }
+                }
+
+                // Initialize fingerprint if not logged in
+                if (!this.authToken) {
+                    await this.initFingerprint();
+                }
+
+                this.initComplete = true;
+                this.updateStatusDisplay();
+            },
+
+            async initFingerprint() {
+                // First check if we have a cached visitor ID
+                const cachedVisitorId = sessionStorage.getItem('visitorId');
+
+                try {
+                    const fp = await FingerprintJS.load();
+                    const result = await fp.get();
+                    const fingerprint = result.visitorId;
+
+                    // Register visitor with backend
+                    const response = await fetch('/api/visitor', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            fingerprint,
+                            language: navigator.language,
+                            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+                            screen_resolution: `${screen.width}x${screen.height}`,
+                            platform: navigator.platform,
+                            referrer: document.referrer
+                        })
+                    });
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        this.visitorId = data.visitor_id;
+                        this.queriesRemaining = data.queries_remaining !== undefined ? data.queries_remaining : 3;
+                        sessionStorage.setItem('visitorId', data.visitor_id);
+                        sessionStorage.setItem('queriesRemaining', this.queriesRemaining);
+                    } else if (cachedVisitorId) {
+                        // API failed but we have a cached ID
+                        this.visitorId = cachedVisitorId;
+                        this.queriesRemaining = parseInt(sessionStorage.getItem('queriesRemaining')) || 3;
+                        console.warn('Using cached visitor ID due to API error');
+                    }
+                } catch (e) {
+                    console.error('Fingerprint initialization failed:', e);
+                    // Use session storage as fallback
+                    if (cachedVisitorId) {
+                        this.visitorId = cachedVisitorId;
+                        this.queriesRemaining = parseInt(sessionStorage.getItem('queriesRemaining')) || 3;
+                        console.warn('Using cached visitor ID due to init error');
+                    }
+                }
+
+                // Log the result for debugging
+                if (this.visitorId) {
+                    console.log('Visitor ID initialized:', this.visitorId, 'Queries remaining:', this.queriesRemaining);
+                } else {
+                    console.warn('No visitor ID available - user will need to sign in');
+                }
+            },
+
+            async checkQueryPermission(address, blockchain, queryType) {
+                try {
+                    // Wait for init to complete if not done yet
+                    if (!this.initComplete) {
+                        await this.init();
+                    }
+
+                    // If not authenticated and no visitor ID, show auth modal
+                    if (!this.authToken && !this.visitorId) {
+                        console.error('No auth token or visitor ID available');
+                        this.showAuthModal();
+                        return { allowed: false, requireLogin: true, error: 'Please sign in or enable cookies to continue' };
+                    }
+
+                    const headers = { 'Content-Type': 'application/json' };
+
+                    if (this.authToken) {
+                        headers['Authorization'] = `Bearer ${this.authToken}`;
+                    }
+                    if (this.visitorId) {
+                        headers['X-Visitor-ID'] = this.visitorId;
+                    }
+
+                    const response = await fetch('/api/query', {
+                        method: 'POST',
+                        headers,
+                        body: JSON.stringify({ address, blockchain, query_type: queryType })
+                    });
+
+                    const data = await response.json();
+
+                    if (data.allowed) {
+                        if (data.queries_remaining !== undefined) {
+                            this.queriesRemaining = data.queries_remaining;
+                            sessionStorage.setItem('queriesRemaining', this.queriesRemaining);
+                        }
+                        this.updateStatusDisplay();
+                        return { allowed: true };
+                    } else if (data.require_login) {
+                        // Limit reached - update display to show 0
+                        this.queriesRemaining = 0;
+                        sessionStorage.setItem('queriesRemaining', 0);
+                        this.updateStatusDisplay();
+                        this.showAuthModal();
+                        return { allowed: false, requireLogin: true, error: data.message };
+                    }
+
+                    return { allowed: false, error: data.error };
+                } catch (e) {
+                    console.error('Query permission check failed:', e);
+                    // Fail closed - don't allow query on error
+                    this.showAuthModal();
+                    return { allowed: false, requireLogin: true, error: 'Unable to verify query permission. Please sign in to continue.' };
+                }
+            },
+
+            showAuthModal() {
+                const modal = document.getElementById('authModal');
+                modal.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            },
+
+            hideAuthModal() {
+                const modal = document.getElementById('authModal');
+                modal.classList.remove('active');
+                document.body.style.overflow = '';
+            },
+
+            showError(message) {
+                const errorEl = document.getElementById('authError');
+                errorEl.textContent = message;
+                errorEl.classList.add('visible');
+                document.getElementById('authSuccess').classList.remove('visible');
+            },
+
+            showSuccess(message) {
+                const successEl = document.getElementById('authSuccess');
+                successEl.textContent = message;
+                successEl.classList.add('visible');
+                document.getElementById('authError').classList.remove('visible');
+            },
+
+            clearMessages() {
+                document.getElementById('authError').classList.remove('visible');
+                document.getElementById('authSuccess').classList.remove('visible');
+            },
+
+            async register(email, password) {
+                try {
+                    const response = await fetch('/api/auth/register', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            email,
+                            password,
+                            visitor_id: this.visitorId
+                        })
+                    });
+
+                    const data = await response.json();
+
+                    if (response.ok) {
+                        this.showSuccess('Account created! You can now login.');
+                        // Switch to login tab
+                        document.querySelector('[data-tab="login"]').click();
+                        document.getElementById('loginEmail').value = email;
+                        return true;
+                    } else {
+                        const errorMsg = data.details ? data.details.join(', ') : data.error;
+                        this.showError(errorMsg);
+                        return false;
+                    }
+                } catch (e) {
+                    this.showError('Registration failed. Please try again.');
+                    return false;
+                }
+            },
+
+            async login(email, password) {
+                try {
+                    const response = await fetch('/api/auth/login', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ email, password })
+                    });
+
+                    const data = await response.json();
+
+                    if (response.ok) {
+                        this.authToken = data.token;
+                        this.user = data.user;
+                        localStorage.setItem('authToken', data.token);
+                        localStorage.setItem('authUser', JSON.stringify(data.user));
+
+                        this.hideAuthModal();
+                        this.updateStatusDisplay();
+
+                        // Check for redirect parameter
+                        const urlParams = new URLSearchParams(window.location.search);
+                        const redirect = urlParams.get('redirect');
+                        if (redirect) {
+                            window.location.href = redirect;
+                            return true;
+                        }
+
+                        // Retry the pending query if any
+                        if (this.pendingQuery) {
+                            const query = this.pendingQuery;
+                            this.pendingQuery = null;
+                            query();
+                        }
+
+                        return true;
+                    } else {
+                        this.showError(data.error);
+                        return false;
+                    }
+                } catch (e) {
+                    this.showError('Login failed. Please try again.');
+                    return false;
+                }
+            },
+
+            logout(reload = true) {
+                if (this.authToken) {
+                    fetch('/api/auth/logout', {
+                        method: 'POST',
+                        headers: { 'Authorization': `Bearer ${this.authToken}` }
+                    }).catch(() => {});
+                }
+
+                this.authToken = null;
+                this.user = null;
+                localStorage.removeItem('authToken');
+                localStorage.removeItem('authUser');
+
+                if (reload) {
+                    window.location.reload();
+                }
+            },
+
+            updateStatusDisplay() {
+                let statusEl = document.getElementById('queryStatus');
+
+                if (!statusEl) {
+                    // Create status element if it doesn't exist
+                    const searchContainer = document.querySelector('.search-container');
+                    if (searchContainer) {
+                        statusEl = document.createElement('div');
+                        statusEl.id = 'queryStatus';
+                        statusEl.className = 'query-status';
+                        searchContainer.insertBefore(statusEl, searchContainer.firstChild);
+                    }
+                }
+
+                if (statusEl) {
+                    if (this.user) {
+                        const superuserBadge = this.user.is_superuser ? '<span class="superuser-badge">ADMIN</span>' : '';
+                        statusEl.className = 'query-status logged-in' + (this.user.is_superuser ? ' superuser' : '');
+                        statusEl.innerHTML = `
+                            <span>${superuserBadge}Logged in as <strong>${this.user.email}</strong> - Unlimited queries</span>
+                            <button class="logout-btn" onclick="AuthSystem.logout()">Logout</button>
+                        `;
+                    } else {
+                        statusEl.className = 'query-status';
+                        statusEl.innerHTML = `
+                            <span>${this.queriesRemaining} free ${this.queriesRemaining === 1 ? 'query' : 'queries'} remaining</span>
+                            <button class="logout-btn" onclick="AuthSystem.showAuthModal()">Login</button>
+                        `;
+                    }
+                }
+            },
+
+            validatePassword(password) {
+                const requirements = {
+                    length: password.length >= 12,
+                    letter: /[a-zA-Z]/.test(password),
+                    number: /[0-9]/.test(password),
+                    symbol: /[!@#$%^&*()_+\-=\[\]{}|;:',.<>\/?\\`~"]/.test(password)
+                };
+
+                // Update UI
+                document.getElementById('req-length').classList.toggle('valid', requirements.length);
+                document.getElementById('req-letter').classList.toggle('valid', requirements.letter);
+                document.getElementById('req-number').classList.toggle('valid', requirements.number);
+                document.getElementById('req-symbol').classList.toggle('valid', requirements.symbol);
+
+                return requirements.length && requirements.letter && requirements.number && requirements.symbol;
+            }
+        };
+
+        // Initialize auth system
+        AuthSystem.init();
+
+        // Auth modal event listeners
+        document.addEventListener('DOMContentLoaded', () => {
+            // Tab switching
+            document.querySelectorAll('.auth-tab').forEach(tab => {
+                tab.addEventListener('click', () => {
+                    document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+                    document.querySelectorAll('.auth-form').forEach(f => f.classList.remove('active'));
+
+                    tab.classList.add('active');
+                    const formId = tab.dataset.tab === 'register' ? 'registerForm' : 'loginForm';
+                    document.getElementById(formId).classList.add('active');
+
+                    AuthSystem.clearMessages();
+                });
+            });
+
+            // Close modal on Escape key
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    const modal = document.getElementById('authModal');
+                    if (modal.classList.contains('active')) {
+                        AuthSystem.hideAuthModal();
+                    }
+                }
+            });
+
+            // Password validation on input
+            document.getElementById('registerPassword').addEventListener('input', (e) => {
+                AuthSystem.validatePassword(e.target.value);
+            });
+
+            // Register form
+            document.getElementById('registerForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
+
+                const email = document.getElementById('registerEmail').value;
+                const password = document.getElementById('registerPassword').value;
+                const confirmPassword = document.getElementById('registerPasswordConfirm').value;
+
+                if (!AuthSystem.validatePassword(password)) {
+                    AuthSystem.showError('Password does not meet all requirements');
+                    return;
+                }
+
+                if (password !== confirmPassword) {
+                    AuthSystem.showError('Passwords do not match');
+                    return;
+                }
+
+                const submitBtn = document.getElementById('registerSubmit');
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Creating account...';
+
+                await AuthSystem.register(email, password);
+
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Create Account';
+            });
+
+            // Login form
+            document.getElementById('loginForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
+
+                const email = document.getElementById('loginEmail').value;
+                const password = document.getElementById('loginPassword').value;
+
+                const submitBtn = document.getElementById('loginSubmit');
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Logging in...';
+
+                await AuthSystem.login(email, password);
+
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Login';
+            });
+
+            // Forgot password
+            document.getElementById('forgotPasswordLink').addEventListener('click', (e) => {
+                e.preventDefault();
+                const email = document.getElementById('loginEmail').value;
+                if (!email) {
+                    AuthSystem.showError('Please enter your email first');
+                    return;
+                }
+                fetch('/api/auth/forgot-password', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email })
+                }).then(() => {
+                    AuthSystem.showSuccess('If an account exists, a reset email has been sent');
+                });
+            });
+
+            // Check for showLogin URL parameter
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('showLogin') === 'true') {
+                // Show login modal and switch to login tab
+                AuthSystem.showAuthModal();
+                document.querySelector('[data-tab="login"]').click();
+                // Clean up URL
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }
+        });
+
+        // ===========================================
+        // Address Detection and Validation System
+        // Supports all major blockchains
+        // ===========================================
+
+        const AddressDetector = {
+            // Base58 alphabet (Bitcoin style)
+            BASE58_ALPHABET: '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz',
+
+            // Bech32 alphabet
+            BECH32_ALPHABET: 'qpzry9x8gf2tvdw0s3jn54khce6mua7l',
+
+            // Blockchain patterns and validators
+            blockchains: {
+                // EVM-compatible chains (Ethereum, Polygon, BSC, Arbitrum, Avalanche C-Chain, etc.)
+                ethereum: {
+                    name: 'Ethereum / EVM',
+                    pattern: /^0x[a-fA-F0-9]{40}$/,
+                    validate: (addr) => AddressDetector.validateEVMAddress(addr),
+                    networks: ['Ethereum', 'Polygon', 'BSC', 'Arbitrum', 'Avalanche C-Chain', 'Optimism', 'Base', 'zkSync']
+                },
+
+                // Bitcoin
+                bitcoin_legacy: {
+                    name: 'Bitcoin (Legacy)',
+                    pattern: /^[13][a-km-zA-HJ-NP-Z1-9]{25,34}$/,
+                    validate: (addr) => AddressDetector.validateBase58Check(addr),
+                    networks: ['Bitcoin']
+                },
+                bitcoin_segwit: {
+                    name: 'Bitcoin (SegWit)',
+                    pattern: /^(bc1|tb1)[a-z0-9]{39,59}$/i,
+                    validate: (addr) => AddressDetector.validateBech32(addr, ['bc', 'tb']),
+                    networks: ['Bitcoin']
+                },
+
+                // Solana
+                solana: {
+                    name: 'Solana',
+                    pattern: /^[1-9A-HJ-NP-Za-km-z]{32,44}$/,
+                    validate: (addr) => AddressDetector.validateSolanaAddress(addr),
+                    networks: ['Solana']
+                },
+
+                // Tron
+                tron: {
+                    name: 'Tron',
+                    pattern: /^T[1-9A-HJ-NP-Za-km-z]{33}$/,
+                    validate: (addr) => AddressDetector.validateBase58Check(addr),
+                    networks: ['Tron']
+                },
+
+                // Cosmos ecosystem
+                cosmos: {
+                    name: 'Cosmos',
+                    pattern: /^cosmos1[a-z0-9]{38}$/,
+                    validate: (addr) => AddressDetector.validateBech32(addr, ['cosmos']),
+                    networks: ['Cosmos Hub']
+                },
+                osmosis: {
+                    name: 'Osmosis',
+                    pattern: /^osmo1[a-z0-9]{38}$/,
+                    validate: (addr) => AddressDetector.validateBech32(addr, ['osmo']),
+                    networks: ['Osmosis']
+                },
+                terra: {
+                    name: 'Terra',
+                    pattern: /^terra1[a-z0-9]{38}$/,
+                    validate: (addr) => AddressDetector.validateBech32(addr, ['terra']),
+                    networks: ['Terra']
+                },
+
+                // Ripple/XRP
+                ripple: {
+                    name: 'Ripple (XRP)',
+                    pattern: /^r[1-9A-HJ-NP-Za-km-z]{24,34}$/,
+                    validate: (addr) => AddressDetector.validateBase58Check(addr),
+                    networks: ['XRP Ledger']
+                },
+
+                // Cardano
+                cardano: {
+                    name: 'Cardano',
+                    pattern: /^(addr1|stake1)[a-z0-9]{53,}$|^(Ae2|DdzFF)[1-9A-HJ-NP-Za-km-z]{50,}$/,
+                    validate: (addr) => AddressDetector.validateCardanoAddress(addr),
+                    networks: ['Cardano']
+                },
+
+                // Polkadot/Substrate
+                polkadot: {
+                    name: 'Polkadot',
+                    pattern: /^1[1-9A-HJ-NP-Za-km-z]{46,47}$/,
+                    validate: (addr) => AddressDetector.validateSS58Address(addr),
+                    networks: ['Polkadot']
+                },
+                kusama: {
+                    name: 'Kusama',
+                    pattern: /^[C-HJ-NP-Z][1-9A-HJ-NP-Za-km-z]{46,47}$/,
+                    validate: (addr) => AddressDetector.validateSS58Address(addr),
+                    networks: ['Kusama']
+                },
+
+                // Algorand
+                algorand: {
+                    name: 'Algorand',
+                    pattern: /^[A-Z2-7]{58}$/,
+                    validate: (addr) => AddressDetector.validateAlgorandAddress(addr),
+                    networks: ['Algorand']
+                },
+
+                // Near
+                near: {
+                    name: 'NEAR',
+                    pattern: /^[a-z0-9_-]{2,64}\.near$|^[a-f0-9]{64}$/,
+                    validate: (addr) => AddressDetector.validateNearAddress(addr),
+                    networks: ['NEAR']
+                },
+
+                // Litecoin
+                litecoin_legacy: {
+                    name: 'Litecoin (Legacy)',
+                    pattern: /^[LM][a-km-zA-HJ-NP-Z1-9]{26,33}$/,
+                    validate: (addr) => AddressDetector.validateBase58Check(addr),
+                    networks: ['Litecoin']
+                },
+                litecoin_segwit: {
+                    name: 'Litecoin (SegWit)',
+                    pattern: /^ltc1[a-z0-9]{39,59}$/i,
+                    validate: (addr) => AddressDetector.validateBech32(addr, ['ltc']),
+                    networks: ['Litecoin']
+                },
+
+                // Dogecoin
+                dogecoin: {
+                    name: 'Dogecoin',
+                    pattern: /^D[5-9A-HJ-NP-U][1-9A-HJ-NP-Za-km-z]{32}$/,
+                    validate: (addr) => AddressDetector.validateBase58Check(addr),
+                    networks: ['Dogecoin']
+                },
+
+                // Aptos
+                aptos: {
+                    name: 'Aptos',
+                    pattern: /^0x[a-fA-F0-9]{64}$/,
+                    validate: (addr) => /^0x[a-fA-F0-9]{64}$/.test(addr),
+                    networks: ['Aptos']
+                },
+
+                // Sui
+                sui: {
+                    name: 'Sui',
+                    pattern: /^0x[a-fA-F0-9]{64}$/,
+                    validate: (addr) => /^0x[a-fA-F0-9]{64}$/.test(addr),
+                    networks: ['Sui']
+                },
+
+                // Avalanche X/P chains
+                avalanche_xp: {
+                    name: 'Avalanche (X/P-Chain)',
+                    pattern: /^[XP]-avax1[a-z0-9]{38}$/,
+                    validate: (addr) => AddressDetector.validateBech32(addr.substring(2), ['avax']),
+                    networks: ['Avalanche X-Chain', 'Avalanche P-Chain']
+                },
+
+                // Stellar
+                stellar: {
+                    name: 'Stellar',
+                    pattern: /^G[A-Z2-7]{55}$/,
+                    validate: (addr) => AddressDetector.validateStellarAddress(addr),
+                    networks: ['Stellar']
+                },
+
+                // Tezos
+                tezos: {
+                    name: 'Tezos',
+                    pattern: /^tz[123][1-9A-HJ-NP-Za-km-z]{33}$|^KT1[1-9A-HJ-NP-Za-km-z]{33}$/,
+                    validate: (addr) => AddressDetector.validateBase58Check(addr),
+                    networks: ['Tezos']
+                }
+            },
+
+            // Detect blockchain from address
+            detectBlockchain(address) {
+                if (!address || typeof address !== 'string') {
+                    return { detected: false, error: 'Invalid input' };
+                }
+
+                address = address.trim();
+                let matches = [];
+
+                // Check against all blockchain patterns
+                for (const [key, blockchain] of Object.entries(this.blockchains)) {
+                    if (blockchain.pattern.test(address)) {
+                        matches.push({
+                            id: key,
+                            name: blockchain.name,
+                            networks: blockchain.networks,
+                            validator: blockchain.validate
+                        });
+                    }
+                }
+
+                // Handle special case: 0x with 64 chars could be Aptos/Sui, 40 chars is EVM
+                if (address.startsWith('0x')) {
+                    if (address.length === 42) {
+                        matches = matches.filter(m => m.id === 'ethereum');
+                    } else if (address.length === 66) {
+                        matches = matches.filter(m => m.id === 'aptos' || m.id === 'sui');
+                    }
+                }
+
+                if (matches.length === 0) {
+                    return { detected: false, error: 'Unknown address format' };
+                }
+
+                return {
+                    detected: true,
+                    matches: matches,
+                    primaryMatch: matches[0]
+                };
+            },
+
+            // Validate address for detected blockchain
+            validateAddress(address) {
+                const detection = this.detectBlockchain(address);
+
+                if (!detection.detected) {
+                    return {
+                        valid: false,
+                        error: detection.error,
+                        blockchain: null
+                    };
+                }
+
+                // Try validation for each matched blockchain
+                for (const match of detection.matches) {
+                    try {
+                        const isValid = match.validator(address);
+                        if (isValid) {
+                            return {
+                                valid: true,
+                                blockchain: match.name,
+                                networks: match.networks,
+                                address: address
+                            };
+                        }
+                    } catch (e) {
+                        // Continue to next match if validation throws
+                        console.warn(`Validation failed for ${match.name}:`, e);
+                    }
+                }
+
+                return {
+                    valid: false,
+                    error: 'Address format recognized but validation failed',
+                    blockchain: detection.primaryMatch.name
+                };
+            },
+
+            // EVM Address Validation (with EIP-55 checksum support)
+            validateEVMAddress(address) {
+                if (!/^0x[a-fA-F0-9]{40}$/.test(address)) return false;
+
+                // If all lowercase or all uppercase, it's valid (no checksum)
+                if (address === address.toLowerCase() || address === address.toUpperCase().replace('0X', '0x')) {
+                    return true;
+                }
+
+                // Validate EIP-55 checksum
+                return this.validateEIP55Checksum(address);
+            },
+
+            // EIP-55 Checksum validation
+            validateEIP55Checksum(address) {
+                const addr = address.slice(2).toLowerCase();
+                // Simple checksum validation - in production you'd use keccak256
+                // For now, we accept mixed case as valid since we can't compute keccak in vanilla JS easily
+                return true;
+            },
+
+            // Base58Check validation (Bitcoin, Litecoin, etc.)
+            validateBase58Check(address) {
+                // Check if all characters are in Base58 alphabet
+                for (const char of address) {
+                    if (!this.BASE58_ALPHABET.includes(char)) {
+                        return false;
+                    }
+                }
+
+                // Decode and verify checksum
+                try {
+                    const decoded = this.decodeBase58(address);
+                    if (decoded.length < 5) return false;
+
+                    // In production, verify double SHA256 checksum
+                    // For now, we just verify the format is correct
+                    return true;
+                } catch (e) {
+                    return false;
+                }
+            },
+
+            // Base58 decode helper
+            decodeBase58(str) {
+                const bytes = [];
+                let value = BigInt(0);
+
+                for (const char of str) {
+                    const index = this.BASE58_ALPHABET.indexOf(char);
+                    if (index === -1) throw new Error('Invalid Base58 character');
+                    value = value * BigInt(58) + BigInt(index);
+                }
+
+                // Convert to bytes
+                while (value > 0) {
+                    bytes.unshift(Number(value % BigInt(256)));
+                    value = value / BigInt(256);
+                }
+
+                // Add leading zeros
+                for (const char of str) {
+                    if (char === '1') bytes.unshift(0);
+                    else break;
+                }
+
+                return bytes;
+            },
+
+            // Bech32 validation (Bitcoin SegWit, Cosmos, etc.)
+            validateBech32(address, validPrefixes) {
+                const lower = address.toLowerCase();
+                const upper = address.toUpperCase();
+
+                // Must be all lowercase or all uppercase
+                if (address !== lower && address !== upper) {
+                    return false;
+                }
+
+                const addr = lower;
+                const sepIndex = addr.lastIndexOf('1');
+
+                if (sepIndex < 1 || sepIndex + 7 > addr.length) {
+                    return false;
+                }
+
+                const prefix = addr.slice(0, sepIndex);
+                const data = addr.slice(sepIndex + 1);
+
+                // Check prefix if specified
+                if (validPrefixes && !validPrefixes.includes(prefix)) {
+                    return false;
+                }
+
+                // Check data characters
+                for (const char of data) {
+                    if (!this.BECH32_ALPHABET.includes(char)) {
+                        return false;
+                    }
+                }
+
+                return true;
+            },
+
+            // Solana address validation
+            validateSolanaAddress(address) {
+                if (!/^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(address)) {
+                    return false;
+                }
+
+                try {
+                    const decoded = this.decodeBase58(address);
+                    // Solana addresses are 32 bytes
+                    return decoded.length === 32;
+                } catch (e) {
+                    return false;
+                }
+            },
+
+            // Cardano address validation
+            validateCardanoAddress(address) {
+                // Shelley era addresses (bech32)
+                if (address.startsWith('addr1') || address.startsWith('stake1')) {
+                    return this.validateBech32(address, ['addr', 'stake']);
+                }
+
+                // Byron era addresses (base58)
+                if (address.startsWith('Ae2') || address.startsWith('DdzFF')) {
+                    return this.validateBase58Check(address);
+                }
+
+                return false;
+            },
+
+            // SS58 address validation (Polkadot/Substrate)
+            validateSS58Address(address) {
+                // Basic validation - check Base58 format
+                return this.validateBase58Check(address);
+            },
+
+            // Algorand address validation
+            validateAlgorandAddress(address) {
+                if (!/^[A-Z2-7]{58}$/.test(address)) {
+                    return false;
+                }
+                // Algorand uses Base32 encoding
+                // The last 4 characters are a checksum
+                return true;
+            },
+
+            // NEAR address validation
+            validateNearAddress(address) {
+                // Named account (*.near)
+                if (/^[a-z0-9_-]{2,64}\.near$/.test(address)) {
+                    return true;
+                }
+
+                // Implicit account (64 hex chars)
+                if (/^[a-f0-9]{64}$/.test(address)) {
+                    return true;
+                }
+
+                return false;
+            },
+
+            // Stellar address validation
+            validateStellarAddress(address) {
+                if (!/^G[A-Z2-7]{55}$/.test(address)) {
+                    return false;
+                }
+                // Stellar uses Base32 encoding with checksum
+                return true;
+            },
+
+            // Get comprehensive address info
+            getAddressInfo(address) {
+                const validation = this.validateAddress(address);
+
+                return {
+                    address: address,
+                    isValid: validation.valid,
+                    blockchain: validation.blockchain || 'Unknown',
+                    networks: validation.networks || [],
+                    error: validation.error || null,
+                    formatted: this.formatAddress(address),
+                    type: this.getAddressType(address, validation.blockchain)
+                };
+            },
+
+            // Format address for display
+            formatAddress(address, maxLength = 16) {
+                if (address.length <= maxLength) return address;
+                const start = Math.ceil(maxLength / 2);
+                const end = Math.floor(maxLength / 2) - 3;
+                return `${address.slice(0, start)}...${address.slice(-end)}`;
+            },
+
+            // Determine address type
+            getAddressType(address, blockchain) {
+                if (!blockchain) return 'Unknown';
+
+                // EVM specific
+                if (blockchain.includes('EVM')) {
+                    return 'Wallet/Contract';
+                }
+
+                // Bitcoin specific
+                if (blockchain.includes('Bitcoin')) {
+                    if (address.startsWith('bc1p')) return 'Taproot';
+                    if (address.startsWith('bc1') || address.startsWith('tb1')) return 'Native SegWit (Bech32)';
+                    if (address.startsWith('3')) return 'SegWit (P2SH)';
+                    if (address.startsWith('1')) return 'Legacy (P2PKH)';
+                }
+
+                // Cardano specific
+                if (blockchain === 'Cardano') {
+                    if (address.startsWith('stake1')) return 'Stake Address';
+                    if (address.startsWith('addr1')) return 'Payment Address';
+                    return 'Byron Era Address';
+                }
+
+                // Tezos specific
+                if (blockchain === 'Tezos') {
+                    if (address.startsWith('KT1')) return 'Smart Contract';
+                    return 'Wallet';
+                }
+
+                return 'Wallet';
+            }
+        };
+
+        // ===========================================
+        // Blockchain Explorer functionality
+        // ===========================================
+        const networks = {
+            ethereum: {
+                name: 'Ethereum',
+                symbol: 'ETH',
+                explorer: 'https://etherscan.io',
+                apiBase: 'https://api.etherscan.io/api',
+                chainId: 1
+            },
+            polygon: {
+                name: 'Polygon',
+                symbol: 'MATIC',
+                explorer: 'https://polygonscan.com',
+                apiBase: 'https://api.polygonscan.com/api',
+                chainId: 137
+            },
+            bsc: {
+                name: 'BNB Smart Chain',
+                symbol: 'BNB',
+                explorer: 'https://bscscan.com',
+                apiBase: 'https://api.bscscan.com/api',
+                chainId: 56
+            },
+            arbitrum: {
+                name: 'Arbitrum',
+                symbol: 'ETH',
+                explorer: 'https://arbiscan.io',
+                apiBase: 'https://api.arbiscan.io/api',
+                chainId: 42161
+            }
+        };
+
+        let currentNetwork = 'ethereum';
+
+        // Network selector
+        document.querySelectorAll('.network-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.network-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentNetwork = btn.dataset.network;
+            });
+        });
+
+        // Search functionality
+        const searchBtn = document.getElementById('searchBtn');
+        const addressInput = document.getElementById('addressInput');
+        const resultsContainer = document.getElementById('results');
+
+        // Helper function to get translations
+        function t(key) {
+            const lang = localStorage.getItem('preferredLanguage') || 'en';
+            const keys = key.split('.');
+            let value = translations[lang];
+            for (const k of keys) {
+                value = value?.[k];
+            }
+            return value || key;
+        }
+
+        // Store last search results to re-render on language change
+        let lastSearchResults = null;
+
+        // Function to re-render results with current language
+        function reRenderResults() {
+            if (lastSearchResults) {
+                if (lastSearchResults.isEVM) {
+                    displayResults(lastSearchResults.address, lastSearchResults.data, lastSearchResults.addressInfo);
+                } else {
+                    displayNonEVMResults(lastSearchResults.address, lastSearchResults.addressInfo);
+                }
+            }
+        }
+
+        // Listen for language changes to re-render results
+        document.querySelectorAll('.lang-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                // Re-render results after language change is applied
+                setTimeout(reRenderResults, 150);
+            });
+        });
+
+        searchBtn.addEventListener('click', () => searchAddress());
+        addressInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') searchAddress();
+        });
+
+        // Network info for transaction lookups
+        const txNetworkInfo = {
+            'https://eth.llamarpc.com': { name: 'Ethereum', symbol: 'ETH', explorer: 'https://etherscan.io' },
+            'https://polygon.llamarpc.com': { name: 'Polygon', symbol: 'MATIC', explorer: 'https://polygonscan.com' },
+            'https://arb1.arbitrum.io/rpc': { name: 'Arbitrum', symbol: 'ETH', explorer: 'https://arbiscan.io' },
+            'https://mainnet.optimism.io': { name: 'Optimism', symbol: 'ETH', explorer: 'https://optimistic.etherscan.io' },
+            'https://mainnet.base.org': { name: 'Base', symbol: 'ETH', explorer: 'https://basescan.org' },
+            'https://bsc-dataseed.binance.org': { name: 'BNB Smart Chain', symbol: 'BNB', explorer: 'https://bscscan.com' },
+            'https://api.avax.network/ext/bc/C/rpc': { name: 'Avalanche', symbol: 'AVAX', explorer: 'https://snowtrace.io' }
+        };
+
+        // Check if a 64-char hex string is an EVM transaction hash and fetch details
+        async function checkIfEvmTransaction(hash) {
+            const rpcEndpoints = Object.keys(txNetworkInfo);
+
+            for (const rpcUrl of rpcEndpoints) {
+                try {
+                    // Fetch transaction data
+                    const txResponse = await fetch(rpcUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            jsonrpc: '2.0',
+                            method: 'eth_getTransactionByHash',
+                            params: [hash],
+                            id: 1
+                        })
+                    });
+                    const txData = await txResponse.json();
+
+                    if (txData.result && txData.result.hash) {
+                        const isMined = !!txData.result.blockNumber;
+                        let receipt = null;
+                        let timestamp = null;
+
+                        // Only fetch receipt if transaction is mined
+                        if (isMined) {
+                            // Retry logic for receipt fetch (up to 3 attempts)
+                            for (let attempt = 0; attempt < 3; attempt++) {
+                                try {
+                                    const receiptResponse = await fetch(rpcUrl, {
+                                        method: 'POST',
+                                        headers: { 'Content-Type': 'application/json' },
+                                        body: JSON.stringify({
+                                            jsonrpc: '2.0',
+                                            method: 'eth_getTransactionReceipt',
+                                            params: [hash],
+                                            id: 2
+                                        })
+                                    });
+                                    const receiptData = await receiptResponse.json();
+
+                                    if (receiptData.result && receiptData.result.logs !== undefined) {
+                                        receipt = receiptData.result;
+                                        break;
+                                    }
+                                } catch (receiptError) {
+                                    console.warn(`Receipt fetch attempt ${attempt + 1} failed:`, receiptError);
+                                }
+
+                                // Wait 500ms before retry (except on last attempt)
+                                if (attempt < 2) {
+                                    await new Promise(resolve => setTimeout(resolve, 500));
+                                }
+                            }
+
+                            // Fetch block for timestamp (with error handling)
+                            try {
+                                const blockResponse = await fetch(rpcUrl, {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({
+                                        jsonrpc: '2.0',
+                                        method: 'eth_getBlockByNumber',
+                                        params: [txData.result.blockNumber, false],
+                                        id: 3
+                                    })
+                                });
+                                const blockData = await blockResponse.json();
+                                if (blockData.result && blockData.result.timestamp) {
+                                    timestamp = parseInt(blockData.result.timestamp, 16);
+                                }
+                            } catch (blockError) {
+                                console.warn('Block fetch failed, continuing without timestamp:', blockError);
+                            }
+                        }
+
+                        return {
+                            isTransaction: true,
+                            isPending: !isMined,
+                            chainRpc: rpcUrl,
+                            network: txNetworkInfo[rpcUrl],
+                            tx: txData.result,
+                            receipt: receipt,
+                            timestamp: timestamp
+                        };
+                    }
+                } catch (error) {
+                    console.warn(`Failed to check TX on ${rpcUrl}:`, error);
+                }
+            }
+            return { isTransaction: false };
+        }
+
+        // ERC-20 Transfer event signature: Transfer(address,address,uint256)
+        const TRANSFER_EVENT_SIGNATURE = '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef';
+
+        // Known stablecoin addresses (lowercase for comparison)
+        const knownStablecoins = {
+            // Ethereum
+            '0xdac17f958d2ee523a2206206994597c13d831ec7': { symbol: 'USDT', decimals: 6, color: '#22c55e' },
+            '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48': { symbol: 'USDC', decimals: 6, color: '#3b82f6' },
+            // Polygon
+            '0xc2132d05d31c914a87c6611c10748aeb04b58e8f': { symbol: 'USDT', decimals: 6, color: '#22c55e' },
+            '0x3c499c542cef5e3811e1192ce70d8cc03d5c3359': { symbol: 'USDC', decimals: 6, color: '#3b82f6' },
+            '0x2791bca1f2de4661ed88a30c99a7a9449aa84174': { symbol: 'USDC.e', decimals: 6, color: '#3b82f6' },
+            // BSC
+            '0x55d398326f99059ff775485246999027b3197955': { symbol: 'USDT', decimals: 18, color: '#22c55e' },
+            '0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d': { symbol: 'USDC', decimals: 18, color: '#3b82f6' },
+            // Arbitrum
+            '0xfd086bc7cd5c481dcc9c85ebe478a1c0b69fcbb9': { symbol: 'USDT', decimals: 6, color: '#22c55e' },
+            '0xaf88d065e77c8cc2239327c5edb3a432268e5831': { symbol: 'USDC', decimals: 6, color: '#3b82f6' },
+            '0xff970a61a04b1ca14834a43f5de4533ebddb5cc8': { symbol: 'USDC.e', decimals: 6, color: '#3b82f6' },
+            // Optimism
+            '0x94b008aa00579c1307b0ef2c499ad98a8ce58e58': { symbol: 'USDT', decimals: 6, color: '#22c55e' },
+            '0x0b2c639c533813f4aa9d7837caf62653d097ff85': { symbol: 'USDC', decimals: 6, color: '#3b82f6' },
+            // Base
+            '0xfde4c96c8593536e31f229ea8f37b2ada2699bb2': { symbol: 'USDT', decimals: 6, color: '#22c55e' },
+            '0x833589fcd6edb6e08f4c7c32d4f71b54bda02913': { symbol: 'USDC', decimals: 6, color: '#3b82f6' },
+            // Avalanche
+            '0x9702230a8ea53601f5cd2dc00fdbc13d4df4a8c7': { symbol: 'USDT', decimals: 6, color: '#22c55e' },
+            '0xb97ef9ef8734c71904d8002f8b6bc66dd9c48a6e': { symbol: 'USDC', decimals: 6, color: '#3b82f6' }
+        };
+
+        // Parse ERC-20 Transfer events from transaction logs
+        function parseTokenTransfers(receipt, network) {
+            const transfers = [];
+            if (!receipt || !receipt.logs) return transfers;
+
+            for (const log of receipt.logs) {
+                // Check if this is a Transfer event
+                if (log.topics && log.topics[0] === TRANSFER_EVENT_SIGNATURE && log.topics.length >= 3) {
+                    const contractAddress = log.address.toLowerCase();
+                    const stablecoin = knownStablecoins[contractAddress];
+
+                    if (stablecoin) {
+                        // Decode the transfer
+                        const from = '0x' + log.topics[1].slice(26);
+                        const to = '0x' + log.topics[2].slice(26);
+                        const amount = parseInt(log.data, 16) / Math.pow(10, stablecoin.decimals);
+
+                        transfers.push({
+                            token: stablecoin.symbol,
+                            color: stablecoin.color,
+                            from: from,
+                            to: to,
+                            amount: amount,
+                            contractAddress: contractAddress
+                        });
+                    }
+                }
+            }
+            return transfers;
+        }
+
+        // Display transaction details
+        function displayTransactionResults(hash, txInfo) {
+            const tx = txInfo.tx;
+            const receipt = txInfo.receipt;
+            const network = txInfo.network;
+
+            // Calculate values
+            const value = tx.value ? parseInt(tx.value, 16) / 1e18 : 0;
+            const gasPrice = tx.gasPrice ? parseInt(tx.gasPrice, 16) / 1e9 : 0; // Gwei
+            const gasUsed = receipt ? parseInt(receipt.gasUsed, 16) : 0;
+            const gasLimit = tx.gas ? parseInt(tx.gas, 16) : 0;
+            const txFee = receipt ? (parseInt(receipt.gasUsed, 16) * parseInt(tx.gasPrice || tx.maxFeePerGas || '0', 16)) / 1e18 : 0;
+            const blockNumber = tx.blockNumber ? parseInt(tx.blockNumber, 16) : 'Pending';
+            const nonce = tx.nonce ? parseInt(tx.nonce, 16) : 0;
+            const status = receipt ? (receipt.status === '0x1' ? 'Success' : 'Failed') : 'Pending';
+            const statusColor = status === 'Success' ? '#059669' : (status === 'Failed' ? '#dc2626' : '#f59e0b');
+
+            // Parse token transfers
+            const tokenTransfers = parseTokenTransfers(receipt, network);
+
+            // Format timestamp
+            let timeStr = 'Pending';
+            if (txInfo.timestamp) {
+                const date = new Date(txInfo.timestamp * 1000);
+                timeStr = date.toLocaleString();
+            }
+
+            // Format addresses
+            const fromAddr = tx.from || 'Unknown';
+            const toAddr = tx.to || 'Contract Creation';
+
+            const explorerUrl = `${network.explorer}/tx/${hash}`;
+
+            // Determine transaction type
+            let txType = t('explorer.txDetected');
+            let txTypeIcon = '<path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>';
+            if (txInfo.isPending) {
+                txType = t('explorer.pendingTx');
+                txTypeIcon = '<circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>';
+            } else if (tokenTransfers.length > 0) {
+                const tokens = [...new Set(tokenTransfers.map(t => t.token))].join(' & ');
+                txType = `${tokens} ${t('explorer.tokenTransfer')}`;
+                txTypeIcon = '<circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/>';
+            }
+
+            let html = `
+                <div class="result-card">
+                    <h3>
+                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            ${txTypeIcon}
+                        </svg>
+                        ${txType}
+                    </h3>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <div class="label">${t('explorer.network')}</div>
+                            <div class="value">${network.name}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="label">${t('explorer.txStatus')}</div>
+                            <div class="value" style="color: ${statusColor}; font-weight: 600;">${status}</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // Add token transfer card if there are stablecoin transfers
+            if (tokenTransfers.length > 0) {
+                html += `
+                    <div class="result-card" style="border-left: 4px solid ${tokenTransfers[0].color};">
+                        <h3>
+                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"/>
+                                <path d="M16 8l-8 8M8 8l8 8"/>
+                            </svg>
+                            ${t('explorer.stablecoinTransfer')}
+                        </h3>
+                `;
+
+                for (const transfer of tokenTransfers) {
+                    html += `
+                        <div class="info-grid" style="margin-bottom: 1rem;">
+                            <div class="info-item" style="grid-column: span 2;">
+                                <div class="label">${t('explorer.tokenAmount')}</div>
+                                <div class="value large" style="color: ${transfer.color};">${transfer.amount.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} ${transfer.token}</div>
+                            </div>
+                            <div class="info-item" style="grid-column: span 2;">
+                                <div class="label">${t('explorer.tokenFrom')}</div>
+                                <div class="value" style="font-size: 0.75rem; font-family: monospace; word-break: break-all;">${transfer.from}</div>
+                                <div style="margin-top: 0.5rem;">
+                                    <a href="investigate-${currentNetwork}.html?address=${transfer.from}" style="color: var(--primary-color); text-decoration: none; font-size: 0.85rem;">Investigate Details →</a>
+                                </div>
+                            </div>
+                            <div class="info-item" style="grid-column: span 2;">
+                                <div class="label">${t('explorer.tokenTo')}</div>
+                                <div class="value" style="font-size: 0.75rem; font-family: monospace; word-break: break-all;">${transfer.to}</div>
+                                <div style="margin-top: 0.5rem;">
+                                    <a href="investigate-${currentNetwork}.html?address=${transfer.to}" style="color: var(--primary-color); text-decoration: none; font-size: 0.85rem;">Investigate Details →</a>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+
+                html += `</div>`;
+            }
+
+            html += `
+                <div class="result-card">
+                    <h3>
+                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="2" y="4" width="20" height="16" rx="2"/>
+                            <path d="M7 15h10M7 11h4"/>
+                        </svg>
+                        ${t('explorer.txDetails')}
+                    </h3>
+                    <div class="info-grid">
+                        <div class="info-item" style="grid-column: span 2;">
+                            <div class="label">${t('explorer.txHash')}</div>
+                            <div class="value" style="font-size: 0.8rem; font-family: monospace; word-break: break-all;">${hash}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="label">${t('explorer.block')}</div>
+                            <div class="value">${typeof blockNumber === 'number' ? blockNumber.toLocaleString() : blockNumber}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="label">${t('explorer.timestamp')}</div>
+                            <div class="value">${timeStr}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="result-card">
+                    <h3>
+                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                            <circle cx="9" cy="7" r="4"/>
+                            <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                        </svg>
+                        ${t('explorer.txParties')}
+                    </h3>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <div class="label">${t('explorer.from')}</div>
+                            <div class="value" style="font-size: 0.8rem; font-family: monospace; word-break: break-all;">
+                                <a href="${network.explorer}/address/${fromAddr}" target="_blank" style="color: var(--primary-color); text-decoration: none;">${fromAddr}</a>
+                            </div>
+                        </div>
+                        <div class="info-item">
+                            <div class="label">${t('explorer.to')}</div>
+                            <div class="value" style="font-size: 0.8rem; font-family: monospace; word-break: break-all;">
+                                ${tx.to ? `<a href="${network.explorer}/address/${toAddr}" target="_blank" style="color: var(--primary-color); text-decoration: none;">${toAddr}</a>` : `<span style="color: var(--primary-color);">${toAddr}</span>`}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="result-card">
+                    <h3>
+                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"/>
+                            <path d="M12 6v6l4 2"/>
+                        </svg>
+                        ${t('explorer.txValue')}
+                    </h3>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <div class="label">${t('explorer.value')}</div>
+                            <div class="value large">${value.toFixed(6)} ${network.symbol}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="label">${t('explorer.txFee')}</div>
+                            <div class="value">${txFee.toFixed(6)} ${network.symbol}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="label">${t('explorer.gasPrice')}</div>
+                            <div class="value">${gasPrice.toFixed(2)} Gwei</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="label">${t('explorer.gasUsed')}</div>
+                            <div class="value">${gasUsed.toLocaleString()} / ${gasLimit.toLocaleString()}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="label">Nonce</div>
+                            <div class="value">${nonce}</div>
+                        </div>
+                    </div>
+                    <div style="margin-top: 1.5rem;">
+                        <a href="${explorerUrl}" target="_blank" rel="noopener" class="btn-primary" style="display: inline-block; text-decoration: none;">
+                            ${t('explorer.viewOnExplorerBtn')} ${network.name} ${t('explorer.explorer')} →
+                        </a>
+                    </div>
+                </div>
+            `;
+
+            resultsContainer.innerHTML = html;
+        }
+
+        // Log query to backend for investigate page
+        function logInvestigateQuery(address, blockchain) {
+            try {
+                const authToken = localStorage.getItem('authToken');
+                const headers = { 'Content-Type': 'application/json' };
+                if (authToken) {
+                    headers['Authorization'] = `Bearer ${authToken}`;
+                }
+
+                fetch('/api/investigate', {
+                    method: 'POST',
+                    headers,
+                    body: JSON.stringify({
+                        address,
+                        blockchain,
+                        query_type: 'investigate'
+                    })
+                });
+            } catch (e) {
+                console.error('Failed to log query:', e);
+            }
+        }
+
+        // Update query result status after processing
+        function updateQueryResult(address, responseStatus) {
+            try {
+                const authToken = localStorage.getItem('authToken');
+                const headers = { 'Content-Type': 'application/json' };
+                if (authToken) {
+                    headers['Authorization'] = `Bearer ${authToken}`;
+                }
+                if (AuthSystem.visitorId) {
+                    headers['X-Visitor-ID'] = AuthSystem.visitorId;
+                }
+
+                fetch('/api/query/result', {
+                    method: 'POST',
+                    headers,
+                    body: JSON.stringify({
+                        address,
+                        response_status: responseStatus
+                    })
+                });
+            } catch (e) {
+                console.error('Failed to update query result:', e);
+            }
+        }
+
+        async function searchAddress() {
+            const address = addressInput.value.trim();
+
+            if (!address) {
+                showError(t('explorer.pleaseEnterAddress'));
+                return;
+            }
+
+            // Use AddressDetector for validation and blockchain detection
+            const addressInfo = AddressDetector.getAddressInfo(address);
+
+            if (!addressInfo.isValid) {
+                showError(`${t('explorer.invalidAddress')}: ${addressInfo.error || t('explorer.unknownFormat')}`);
+                return;
+            }
+
+            // Check query permission
+            const permission = await AuthSystem.checkQueryPermission(address, addressInfo.blockchain, 'address');
+            if (!permission.allowed) {
+                if (permission.requireLogin) {
+                    // Store the pending query to retry after login
+                    AuthSystem.pendingQuery = () => searchAddress();
+                }
+                // Show error message if provided
+                if (permission.error) {
+                    showError(permission.error);
+                }
+                return;
+            }
+
+            showLoading();
+
+            // Log the investigate query
+            logInvestigateQuery(address, addressInfo.blockchain);
+
+            // Check if this is a 64-char hex string (could be Aptos/Sui address OR EVM TX hash)
+            const is64CharHex = /^0x[a-fA-F0-9]{64}$/.test(address);
+            if (is64CharHex) {
+                // Check if it's an EVM transaction hash first
+                const txCheck = await checkIfEvmTransaction(address);
+                if (txCheck.isTransaction) {
+                    displayTransactionResults(address, txCheck);
+                    updateQueryResult(address, 'found');
+                    return;
+                }
+                // If not a TX hash, continue treating it as Aptos/Sui address
+            }
+
+            // Check if this is an EVM-compatible address for on-chain lookup
+            const isEVMAddress = addressInfo.blockchain === 'Ethereum / EVM';
+
+            try {
+                if (isEVMAddress) {
+                    // Fetch on-chain data for EVM addresses
+                    const data = await fetchAddressData(address);
+                    lastSearchResults = { address, data, addressInfo, isEVM: true };
+                    displayResults(address, data, addressInfo);
+                    // Check if we actually found data on any chain
+                    const hasData = data && data.some(chain => chain.balance !== '0' || chain.txCount > 0);
+                    updateQueryResult(address, hasData ? 'found' : 'no_data');
+                } else {
+                    // For non-EVM addresses, show detection results only
+                    lastSearchResults = { address, addressInfo, isEVM: false };
+                    displayNonEVMResults(address, addressInfo);
+                    updateQueryResult(address, 'found');
+                }
+            } catch (error) {
+                console.error('Error fetching data:', error);
+                lastSearchResults = null;
+                showError(t('explorer.fetchError'));
+                updateQueryResult(address, 'no_data');
+            }
+        }
+
+        function isValidAddress(address) {
+            // Use AddressDetector for validation
+            const info = AddressDetector.getAddressInfo(address);
+            return info.isValid;
+        }
+
+        // Display results for non-EVM blockchains
+        function displayNonEVMResults(address, addressInfo) {
+            const explorerUrls = {
+                'Bitcoin (Legacy)': `https://blockstream.info/address/${address}`,
+                'Bitcoin (SegWit)': `https://blockstream.info/address/${address}`,
+                'Solana': `https://solscan.io/account/${address}`,
+                'Tron': `https://tronscan.org/#/address/${address}`,
+                'Cosmos': `https://www.mintscan.io/cosmos/address/${address}`,
+                'Osmosis': `https://www.mintscan.io/osmosis/address/${address}`,
+                'Terra': `https://finder.terra.money/mainnet/address/${address}`,
+                'Ripple (XRP)': `https://xrpscan.com/account/${address}`,
+                'Cardano': `https://cardanoscan.io/address/${address}`,
+                'Polkadot': `https://polkadot.subscan.io/account/${address}`,
+                'Kusama': `https://kusama.subscan.io/account/${address}`,
+                'Algorand': `https://algoexplorer.io/address/${address}`,
+                'NEAR': `https://explorer.near.org/accounts/${address}`,
+                'Litecoin (Legacy)': `https://blockchair.com/litecoin/address/${address}`,
+                'Litecoin (SegWit)': `https://blockchair.com/litecoin/address/${address}`,
+                'Dogecoin': `https://blockchair.com/dogecoin/address/${address}`,
+                'Aptos': `https://explorer.aptoslabs.com/account/${address}`,
+                'Sui': `https://suiscan.xyz/account/${address}`,
+                'Stellar': `https://stellar.expert/explorer/public/account/${address}`,
+                'Tezos': `https://tzkt.io/${address}`,
+                'Avalanche (X/P-Chain)': `https://avascan.info/blockchain/x/address/${address}`
+            };
+
+            const explorerUrl = explorerUrls[addressInfo.blockchain] || '#';
+
+            let html = `
+                <div class="result-card">
+                    <h3>
+                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M9 12l2 2 4-4"/>
+                            <circle cx="12" cy="12" r="10"/>
+                        </svg>
+                        ${t('explorer.addressDetected')}
+                    </h3>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <div class="label">${t('explorer.blockchain')}</div>
+                            <div class="value">${addressInfo.blockchain}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="label">${t('explorer.addressType')}</div>
+                            <div class="value">${addressInfo.type}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="label">${t('explorer.networks')}</div>
+                            <div class="value">${addressInfo.networks.join(', ')}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="label">${t('explorer.validation')}</div>
+                            <div class="value" style="color: #059669;">✓ ${t('explorer.valid')}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="result-card">
+                    <h3>
+                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+                            <polyline points="15 3 21 3 21 9"/>
+                            <line x1="10" y1="14" x2="21" y2="3"/>
+                        </svg>
+                        ${t('explorer.fullAddress')}
+                    </h3>
+                    <div style="background: var(--light-purple); padding: 1rem; border-radius: 8px; word-break: break-all; font-family: monospace; font-size: 0.9rem;">
+                        ${address}
+                    </div>
+                    <div style="margin-top: 1.5rem;">
+                        ${addressInfo.blockchain === 'Tron' ? `
+                            <a href="investigate-tron.html?address=${address}" style="color: var(--primary-color); text-decoration: none; font-size: 0.9rem; display: block; margin-bottom: 0.5rem;">
+                                Investigate Details →
+                            </a>
+                            <a href="${explorerUrl}" target="_blank" rel="noopener" style="color: var(--primary-color); text-decoration: none; font-size: 0.9rem;">
+                                ${t('explorer.viewOnExplorerBtn')} Tronscan →
+                            </a>
+                        ` : addressInfo.blockchain === 'Solana' ? `
+                            <a href="investigate-solana.html?address=${address}" style="color: var(--primary-color); text-decoration: none; font-size: 0.9rem; display: block; margin-bottom: 0.5rem;">
+                                Investigate Details →
+                            </a>
+                            <a href="${explorerUrl}" target="_blank" rel="noopener" style="color: var(--primary-color); text-decoration: none; font-size: 0.9rem;">
+                                ${t('explorer.viewOnExplorerBtn')} Solscan →
+                            </a>
+                        ` : addressInfo.blockchain === 'Bitcoin (SegWit)' || addressInfo.blockchain === 'Bitcoin (Legacy)' ? `
+                            <a href="investigate-bitcoin.html?address=${address}" style="color: var(--primary-color); text-decoration: none; font-size: 0.9rem; display: block; margin-bottom: 0.5rem;">
+                                Investigate Details →
+                            </a>
+                            <a href="https://blockstream.info/address/${address}" target="_blank" rel="noopener" style="color: var(--primary-color); text-decoration: none; font-size: 0.9rem;">
+                                ${t('explorer.viewOnExplorerBtn')} Blockstream →
+                            </a>
+                        ` : `
+                            <a href="${explorerUrl}" target="_blank" rel="noopener" class="btn-primary" style="display: inline-block; text-decoration: none;">
+                                ${t('explorer.viewOnExplorerBtn')} ${addressInfo.blockchain} ${t('explorer.explorer')}
+                            </a>
+                        `}
+                    </div>
+                </div>
+            `;
+
+            resultsContainer.innerHTML = html;
+        }
+
+        // Stablecoin contract addresses per chain
+        const stablecoins = {
+            ethereum: {
+                USDT: { address: '0xdAC17F958D2ee523a2206206994597C13D831ec7', decimals: 6 },
+                USDC: { address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48', decimals: 6 }
+            },
+            polygon: {
+                USDT: { address: '0xc2132D05D31c914a87C6611C10748AEb04B58e8F', decimals: 6 },
+                USDC: { address: '0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359', decimals: 6 }
+            },
+            bsc: {
+                USDT: { address: '0x55d398326f99059fF775485246999027B3197955', decimals: 18 },
+                USDC: { address: '0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d', decimals: 18 }
+            },
+            arbitrum: {
+                USDT: { address: '0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9', decimals: 6 },
+                USDC: { address: '0xaf88d065e77c8cC2239327C5EDb3A432268e5831', decimals: 6 }
+            },
+            optimism: {
+                USDT: { address: '0x94b008aA00579c1307B0EF2c499aD98a8ce58e58', decimals: 6 },
+                USDC: { address: '0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85', decimals: 6 }
+            },
+            base: {
+                USDT: { address: '0xfde4C96c8593536E31F229EA8f37b2ADa2699bb2', decimals: 6 },
+                USDC: { address: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913', decimals: 6 }
+            },
+            avalanche: {
+                USDT: { address: '0x9702230A8Ea53601f5cD2dc00fDBc13d4dF4A8c7', decimals: 6 },
+                USDC: { address: '0xB97EF9Ef8734C71904D8002F8b6Bc66Dd9c48a6E', decimals: 6 }
+            },
+            fantom: {
+                USDT: { address: '0x049d68029688eAbF473097a2fC38ef61633A3C7A', decimals: 6 },
+                USDC: { address: '0x04068DA6C83AFCFA0e13ba15A6696662335D5B75', decimals: 6 }
+            }
+        };
+
+        // ERC-20 balanceOf function signature
+        const BALANCE_OF_SELECTOR = '0x70a08231';
+
+        // Fetch ERC-20 token balance
+        async function fetchTokenBalance(rpcUrl, tokenAddress, walletAddress, decimals) {
+            try {
+                // Encode the balanceOf call: selector + padded address
+                const paddedAddress = walletAddress.slice(2).toLowerCase().padStart(64, '0');
+                const data = BALANCE_OF_SELECTOR + paddedAddress;
+
+                const response = await fetch(rpcUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        jsonrpc: '2.0',
+                        method: 'eth_call',
+                        params: [{ to: tokenAddress, data: data }, 'latest'],
+                        id: 1
+                    })
+                });
+                const result = await response.json();
+                if (result.result && result.result !== '0x') {
+                    return parseInt(result.result, 16) / Math.pow(10, decimals);
+                }
+                return 0;
+            } catch (error) {
+                console.warn(`Error fetching token balance:`, error);
+                return 0;
+            }
+        }
+
+        // Fetch data for a single chain
+        async function fetchChainData(address, networkKey, network, rpcUrl) {
+            try {
+                // Fetch native balance
+                const balanceResponse = await fetch(rpcUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        jsonrpc: '2.0',
+                        method: 'eth_getBalance',
+                        params: [address, 'latest'],
+                        id: 1
+                    })
+                });
+                const balanceData = await balanceResponse.json();
+                const balance = balanceData.result ? parseInt(balanceData.result, 16) / 1e18 : 0;
+
+                // Check if contract
+                const codeResponse = await fetch(rpcUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        jsonrpc: '2.0',
+                        method: 'eth_getCode',
+                        params: [address, 'latest'],
+                        id: 2
+                    })
+                });
+                const codeData = await codeResponse.json();
+                const isContract = codeData.result && codeData.result !== '0x';
+
+                // Get transaction count
+                const txCountResponse = await fetch(rpcUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        jsonrpc: '2.0',
+                        method: 'eth_getTransactionCount',
+                        params: [address, 'latest'],
+                        id: 3
+                    })
+                });
+                const txCountData = await txCountResponse.json();
+                const txCount = txCountData.result ? parseInt(txCountData.result, 16) : 0;
+
+                // Fetch USDT and USDC balances
+                let usdtBalance = 0;
+                let usdcBalance = 0;
+                const chainStables = stablecoins[networkKey];
+                if (chainStables) {
+                    [usdtBalance, usdcBalance] = await Promise.all([
+                        fetchTokenBalance(rpcUrl, chainStables.USDT.address, address, chainStables.USDT.decimals),
+                        fetchTokenBalance(rpcUrl, chainStables.USDC.address, address, chainStables.USDC.decimals)
+                    ]);
+                }
+
+                return {
+                    networkKey,
+                    network,
+                    balance,
+                    usdtBalance,
+                    usdcBalance,
+                    isContract,
+                    txCount,
+                    success: true
+                };
+            } catch (error) {
+                console.error(`Error fetching data for ${network.name}:`, error);
+                return {
+                    networkKey,
+                    network,
+                    balance: 0,
+                    usdtBalance: 0,
+                    usdcBalance: 0,
+                    isContract: false,
+                    txCount: 0,
+                    success: false,
+                    error: error.message
+                };
+            }
+        }
+
+        // Fetch data for all EVM chains in parallel
+        async function fetchAllEVMData(address) {
+            const rpcEndpoints = {
+                ethereum: 'https://eth.llamarpc.com',
+                polygon: 'https://polygon.llamarpc.com',
+                bsc: 'https://bsc-dataseed.binance.org',
+                arbitrum: 'https://arb1.arbitrum.io/rpc',
+                optimism: 'https://mainnet.optimism.io',
+                base: 'https://mainnet.base.org',
+                avalanche: 'https://api.avax.network/ext/bc/C/rpc',
+                fantom: 'https://rpc.ftm.tools'
+            };
+
+            // Extended networks config
+            const allNetworks = {
+                ...networks,
+                optimism: {
+                    name: 'Optimism',
+                    symbol: 'ETH',
+                    explorer: 'https://optimistic.etherscan.io',
+                    chainId: 10
+                },
+                base: {
+                    name: 'Base',
+                    symbol: 'ETH',
+                    explorer: 'https://basescan.org',
+                    chainId: 8453
+                },
+                avalanche: {
+                    name: 'Avalanche C-Chain',
+                    symbol: 'AVAX',
+                    explorer: 'https://snowtrace.io',
+                    chainId: 43114
+                },
+                fantom: {
+                    name: 'Fantom',
+                    symbol: 'FTM',
+                    explorer: 'https://ftmscan.com',
+                    chainId: 250
+                }
+            };
+
+            // Fetch all chains in parallel
+            const promises = Object.entries(rpcEndpoints).map(([key, rpcUrl]) =>
+                fetchChainData(address, key, allNetworks[key], rpcUrl)
+            );
+
+            const results = await Promise.all(promises);
+            return results;
+        }
+
+        async function fetchAddressData(address) {
+            return await fetchAllEVMData(address);
+        }
+
+        function displayResults(address, allChainData, addressInfo) {
+            let html = `
+                <div class="result-card">
+                    <h3>
+                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                            <circle cx="12" cy="7" r="4"/>
+                        </svg>
+                        ${t('explorer.evmAddressDetected')}
+                    </h3>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <div class="label">${t('explorer.address')}</div>
+                            <div class="value" style="font-size: 0.85rem; font-family: monospace; word-break: break-all;">
+                                ${address}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="info-grid" style="margin-top: 1rem;">
+                        <div class="info-item">
+                            <div class="label">${t('explorer.validation')}</div>
+                            <div class="value" style="color: #059669;">✓ ${t('explorer.valid')}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="label">${t('explorer.compatibleNetworks')}</div>
+                            <div class="value">${allChainData.length} ${t('explorer.chainsQueried')}</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // Add a card for each chain
+            for (const chainData of allChainData) {
+                const network = chainData.network;
+                const explorerUrl = `${network.explorer}/address/${address}`;
+                const hasActivity = chainData.balance > 0 || chainData.txCount > 0 || chainData.usdtBalance > 0 || chainData.usdcBalance > 0;
+                const statusColor = chainData.success ? (hasActivity ? '#059669' : '#6b7280') : '#dc2626';
+                const statusText = chainData.success ? (hasActivity ? t('explorer.active') : t('explorer.noActivity')) : t('explorer.error');
+
+                html += `
+                    <div class="result-card" style="border-left: 4px solid ${hasActivity ? 'var(--primary-color)' : 'var(--border-color)'};">
+                        <h3>
+                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+                                <path d="M2 17l10 5 10-5"/>
+                                <path d="M2 12l10 5 10-5"/>
+                            </svg>
+                            ${network.name}
+                            <span style="margin-left: auto; font-size: 0.75rem; padding: 0.25rem 0.5rem; border-radius: 4px; background: ${hasActivity ? 'var(--light-purple)' : '#f3f4f6'}; color: ${statusColor};">
+                                ${statusText}
+                            </span>
+                        </h3>
+                        <div class="info-grid">
+                            <div class="info-item">
+                                <div class="label">${t('explorer.type')}</div>
+                                <div class="value">${chainData.isContract ? '<span style="color: var(--primary-color);">' + t('explorer.smartContract') + '</span>' : t('explorer.eoaUser')}</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="label">${t('explorer.balance')}</div>
+                                <div class="value ${hasActivity ? 'large' : ''}">${chainData.balance.toFixed(6)} ${network.symbol}</div>
+                                <div class="value" style="font-size: 0.9rem; margin-top: 0.5rem; color: #22c55e;">${chainData.usdtBalance.toFixed(2)} USDT</div>
+                                <div class="value" style="font-size: 0.9rem; margin-top: 0.25rem; color: #3b82f6;">${chainData.usdcBalance.toFixed(2)} USDC</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="label">${t('explorer.transactions')}</div>
+                                <div class="value">${chainData.txCount.toLocaleString()}</div>
+                            </div>
+                        </div>
+                        <div style="margin-top: 1rem;">
+                            <a href="investigate-${chainData.networkKey}.html?address=${address}" style="color: var(--primary-color); text-decoration: none; font-size: 0.9rem; display: block; margin-bottom: 0.5rem;">
+                                Investigate Details →
+                            </a>
+                            <a href="${explorerUrl}" target="_blank" rel="noopener" style="color: var(--primary-color); text-decoration: none; font-size: 0.9rem;">
+                                ${t('explorer.viewOnExplorerBtn')} ${network.name} ${t('explorer.explorer')} →
+                            </a>
+                        </div>
+                    </div>
+                `;
+            }
+
+            resultsContainer.innerHTML = html;
+        }
+
+        function showLoading() {
+            resultsContainer.innerHTML = `
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p data-i18n="explorer.loading">Loading blockchain data...</p>
+                </div>
+            `;
+        }
+
+        function showError(message) {
+            resultsContainer.innerHTML = `
+                <div class="error-message">${message}</div>
+                <div class="empty-state">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <circle cx="11" cy="11" r="8"/>
+                        <path d="M21 21l-4.35-4.35"/>
+                    </svg>
+                    <p data-i18n="explorer.emptyState">Enter an address above to get started</p>
+                </div>
+            `;
+        }
+
+        // Check URL params for address
+        const urlParams = new URLSearchParams(window.location.search);
+        const addressParam = urlParams.get('address');
+        const networkParam = urlParams.get('network') || urlParams.get('blockchain');
+
+        if (networkParam && networks[networkParam]) {
+            document.querySelectorAll('.network-btn').forEach(b => b.classList.remove('active'));
+            document.querySelector(`[data-network="${networkParam}"]`)?.classList.add('active');
+            currentNetwork = networkParam;
+        }
+
+        if (addressParam) {
+            addressInput.value = addressParam;
+            searchAddress();
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Query History - TACC</title>
+    <link rel="icon" type="image/x-icon" href="assets/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="assets/favicon-16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="assets/apple-touch-icon.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css?v=46">
+    <style>
+        .history-section {
+            padding: 8rem 0 4rem 0;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9ff 100%);
+        }
+
+        .history-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .history-header h1 {
+            font-size: 2.5rem;
+            color: var(--text-color);
+            margin-bottom: 0.5rem;
+        }
+
+        .history-header p {
+            color: var(--text-light);
+            font-size: 1.1rem;
+        }
+
+        .history-container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .history-table {
+            width: 100%;
+            background: white;
+            border-radius: 12px;
+            box-shadow: var(--shadow-md);
+            overflow: hidden;
+        }
+
+        .history-table table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .history-table th,
+        .history-table td {
+            padding: 1rem 1.25rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .history-table th {
+            background: #f9fafb;
+            font-weight: 600;
+            color: var(--text-color);
+            font-size: 0.9rem;
+        }
+
+        .history-table td {
+            font-size: 0.95rem;
+            color: var(--text-light);
+        }
+
+        .history-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .history-table tr:hover td {
+            background: #f9fafb;
+        }
+
+        .address-cell {
+            font-family: 'Inter', monospace;
+            font-size: 0.85rem;
+            color: var(--primary-color);
+            cursor: pointer;
+            word-break: break-all;
+        }
+
+        .address-cell:hover {
+            text-decoration: underline;
+        }
+
+        .blockchain-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            background: var(--light-purple);
+            color: var(--primary-color);
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .type-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .type-badge.investigate {
+            background: #dbeafe;
+            color: #1d4ed8;
+        }
+
+        .type-badge.details {
+            background: #d1fae5;
+            color: #059669;
+        }
+
+        .result-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .result-badge.found {
+            background: #d1fae5;
+            color: #059669;
+        }
+
+        .result-badge.no-data {
+            background: #fef3c7;
+            color: #d97706;
+        }
+
+        .result-badge.invalid {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        .date-cell {
+            white-space: nowrap;
+            font-size: 0.85rem;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .pagination button {
+            padding: 0.5rem 1rem;
+            background: white;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .pagination button:hover:not(:disabled) {
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+        }
+
+        .pagination button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .pagination span {
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: var(--text-light);
+        }
+
+        .empty-state svg {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        .empty-state h3 {
+            color: var(--text-color);
+            margin-bottom: 0.5rem;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 4rem 2rem;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--border-color);
+            border-top-color: var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .login-required {
+            text-align: center;
+            padding: 4rem 2rem;
+            background: white;
+            border-radius: 12px;
+            box-shadow: var(--shadow-md);
+        }
+
+        .login-required h3 {
+            color: var(--text-color);
+            margin-bottom: 1rem;
+        }
+
+        .login-required p {
+            color: var(--text-light);
+            margin-bottom: 1.5rem;
+        }
+
+        .login-required .btn {
+            display: inline-block;
+            padding: 0.75rem 2rem;
+            background: var(--gradient-primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: 500;
+            margin-bottom: 2rem;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+
+        /* Admin toggle styles */
+        .admin-controls {
+            display: none;
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            border: 1px solid #f59e0b;
+            border-radius: 8px;
+            padding: 1rem 1.5rem;
+            margin-bottom: 1.5rem;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .admin-controls.visible {
+            display: flex;
+        }
+
+        .admin-controls .admin-label {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #92400e;
+            font-weight: 500;
+        }
+
+        .admin-controls .admin-badge {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            color: white;
+            padding: 0.15rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .toggle-container {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .toggle-label {
+            font-size: 0.9rem;
+            color: #92400e;
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 50px;
+            height: 26px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #d1d5db;
+            transition: 0.3s;
+            border-radius: 26px;
+        }
+
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 20px;
+            width: 20px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: 0.3s;
+            border-radius: 50%;
+        }
+
+        .toggle-switch input:checked + .toggle-slider {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        }
+
+        .toggle-switch input:checked + .toggle-slider:before {
+            transform: translateX(24px);
+        }
+
+        .user-cell {
+            font-size: 0.85rem;
+            color: var(--text-light);
+        }
+
+        .user-cell.anonymous {
+            font-style: italic;
+            color: #9ca3af;
+        }
+
+        @media (max-width: 768px) {
+            .history-table th,
+            .history-table td {
+                padding: 0.75rem;
+            }
+
+            /* Hide Type column on mobile */
+            .history-table th:nth-child(3),
+            .history-table td:nth-child(3) {
+                display: none;
+            }
+
+            /* Hide Date column on mobile */
+            .history-table th:nth-child(5),
+            .history-table td:nth-child(5) {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation (loaded dynamically) -->
+    <div id="navbar-placeholder"></div>
+
+    <section class="history-section">
+        <div class="container">
+            <a href="investigate.html" class="back-link">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M19 12H5M12 19l-7-7 7-7"/>
+                </svg>
+                Back to Investigate
+            </a>
+
+            <div class="history-header">
+                <h1>Query History</h1>
+                <p id="userInfo">Your blockchain investigation history</p>
+            </div>
+
+            <div id="adminControls" class="admin-controls">
+                <div class="admin-label">
+                    <span class="admin-badge">ADMIN</span>
+                    <span>Superuser Mode</span>
+                </div>
+                <div class="toggle-container">
+                    <span class="toggle-label">View all users</span>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="viewAllToggle" onchange="toggleViewAll()">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="history-container">
+                <div id="historyContent">
+                    <div class="loading">
+                        <div class="spinner"></div>
+                        <p>Loading your history...</p>
+                    </div>
+                </div>
+
+                <div id="pagination" class="pagination" style="display: none;">
+                    <button id="prevBtn" onclick="loadPage(currentPage - 1)">Previous</button>
+                    <span id="pageInfo">Page 1 of 1</span>
+                    <button id="nextBtn" onclick="loadPage(currentPage + 1)">Next</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-bottom">
+                <p>&copy; 2024 The Americas Consulting Company. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js?v=49"></script>
+    <script>
+        let currentPage = 1;
+        const limit = 20;
+        let totalPages = 1;
+        let currentUser = null;
+        let viewingAllUsers = false;
+
+        async function init() {
+            const authToken = localStorage.getItem('authToken');
+
+            if (!authToken) {
+                showLoginRequired();
+                return;
+            }
+
+            // Verify session
+            try {
+                const response = await fetch('/api/auth/me', {
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+
+                if (!response.ok) {
+                    localStorage.removeItem('authToken');
+                    localStorage.removeItem('authUser');
+                    showLoginRequired();
+                    return;
+                }
+
+                const data = await response.json();
+                currentUser = data.user;
+                document.getElementById('userInfo').textContent = `Logged in as ${data.user.email}`;
+
+                // Show admin controls if superuser
+                if (currentUser.is_superuser) {
+                    document.getElementById('adminControls').classList.add('visible');
+                }
+
+                loadPage(1);
+            } catch (e) {
+                console.error('Session check failed:', e);
+                showLoginRequired();
+            }
+        }
+
+        function toggleViewAll() {
+            viewingAllUsers = document.getElementById('viewAllToggle').checked;
+
+            if (viewingAllUsers) {
+                document.getElementById('userInfo').textContent = 'Viewing all users\' query history';
+            } else {
+                document.getElementById('userInfo').textContent = `Logged in as ${currentUser.email}`;
+            }
+
+            loadPage(1);
+        }
+
+        function showLoginRequired() {
+            document.getElementById('historyContent').innerHTML = `
+                <div class="login-required">
+                    <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="display: block; margin: 0 auto 1rem;">
+                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                        <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                    </svg>
+                    <h3>Login Required</h3>
+                    <p>You need to be logged in to view your query history.</p>
+                    <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+                        <a href="investigate.html?showLogin=true&redirect=query-history.html" class="btn">Login</a>
+                        <a href="investigate.html" class="btn" style="background: white; color: var(--primary-color); border: 2px solid var(--primary-color);">Go to Investigate</a>
+                    </div>
+                </div>
+            `;
+        }
+
+        async function loadPage(page) {
+            const authToken = localStorage.getItem('authToken');
+            if (!authToken) {
+                showLoginRequired();
+                return;
+            }
+
+            const loadingText = viewingAllUsers ? 'Loading all users\' history...' : 'Loading your history...';
+            document.getElementById('historyContent').innerHTML = `
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>${loadingText}</p>
+                </div>
+            `;
+
+            try {
+                const endpoint = viewingAllUsers
+                    ? `/api/queries/history/all?page=${page}&limit=${limit}`
+                    : `/api/queries/history?page=${page}&limit=${limit}`;
+
+                const response = await fetch(endpoint, {
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to load history');
+                }
+
+                const data = await response.json();
+
+                if (data.queries.length === 0 && page === 1) {
+                    showEmptyState();
+                    return;
+                }
+
+                currentPage = data.pagination.page;
+                totalPages = data.pagination.total_pages;
+
+                renderHistory(data.queries, viewingAllUsers);
+                updatePagination();
+
+            } catch (e) {
+                console.error('Failed to load history:', e);
+                document.getElementById('historyContent').innerHTML = `
+                    <div class="empty-state">
+                        <p>Failed to load history. Please try again.</p>
+                    </div>
+                `;
+            }
+        }
+
+        function showEmptyState() {
+            document.getElementById('historyContent').innerHTML = `
+                <div class="empty-state">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <circle cx="11" cy="11" r="8"/>
+                        <path d="M21 21l-4.35-4.35"/>
+                    </svg>
+                    <h3>No queries yet</h3>
+                    <p>Start investigating blockchain addresses to see your history here.</p>
+                </div>
+            `;
+            document.getElementById('pagination').style.display = 'none';
+        }
+
+        function getResultDisplay(query) {
+            const status = query.response_status || 'success';
+            const isDetails = query.query_type === 'details';
+
+            if (status === 'invalid') {
+                return { label: 'Address not good', class: 'invalid' };
+            } else if (status === 'no_data' || status === 'no-data') {
+                return isDetails
+                    ? { label: 'No details', class: 'no-data' }
+                    : { label: 'No data', class: 'no-data' };
+            } else if (status === 'found' || status === 'success') {
+                return { label: 'Found', class: 'found' };
+            }
+            return { label: status, class: 'found' };
+        }
+
+        function renderHistory(queries, showUserColumn = false) {
+            let html = `
+                <div class="history-table">
+                    <table>
+                        <thead>
+                            <tr>
+                                ${showUserColumn ? '<th>User</th>' : ''}
+                                <th>Address</th>
+                                <th>Blockchain</th>
+                                <th>Type</th>
+                                <th>Result</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+
+            for (const query of queries) {
+                const date = new Date(query.created_at);
+                const formattedDate = date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                const shortAddress = query.address.length > 20
+                    ? query.address.substring(0, 10) + '...' + query.address.substring(query.address.length - 8)
+                    : query.address;
+                const result = getResultDisplay(query);
+
+                let userCell = '';
+                if (showUserColumn) {
+                    if (query.user_email) {
+                        userCell = `<td class="user-cell">${query.user_email}</td>`;
+                    } else if (query.visitor_id) {
+                        userCell = `<td class="user-cell anonymous">Visitor #${query.visitor_id}</td>`;
+                    } else {
+                        userCell = `<td class="user-cell anonymous">Anonymous</td>`;
+                    }
+                }
+
+                html += `
+                    <tr>
+                        ${userCell}
+                        <td class="address-cell" onclick="goToAddress('${query.address}')" title="${query.address}">${shortAddress}</td>
+                        <td><span class="blockchain-badge">${query.blockchain || 'Unknown'}</span></td>
+                        <td><span class="type-badge ${query.query_type === 'details' ? 'details' : 'investigate'}">${query.query_type === 'details' ? 'Details' : 'Investigate'}</span></td>
+                        <td><span class="result-badge ${result.class}">${result.label}</span></td>
+                        <td class="date-cell">${formattedDate}</td>
+                    </tr>
+                `;
+            }
+
+            html += `
+                        </tbody>
+                    </table>
+                </div>
+            `;
+
+            document.getElementById('historyContent').innerHTML = html;
+        }
+
+        function updatePagination() {
+            const pagination = document.getElementById('pagination');
+
+            if (totalPages <= 1) {
+                pagination.style.display = 'none';
+                return;
+            }
+
+            pagination.style.display = 'flex';
+            document.getElementById('prevBtn').disabled = currentPage <= 1;
+            document.getElementById('nextBtn').disabled = currentPage >= totalPages;
+            document.getElementById('pageInfo').textContent = `Page ${currentPage} of ${totalPages}`;
+        }
+
+        function goToAddress(address) {
+            window.location.href = `investigate.html?address=${encodeURIComponent(address)}`;
+        }
+
+        // Initialize on load
+        init();
+    </script>
+</body>
+</html>

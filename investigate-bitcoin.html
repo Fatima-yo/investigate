@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Investigate Bitcoin - TACC</title>
+    <link rel="icon" type="image/x-icon" href="assets/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="assets/favicon-16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="assets/apple-touch-icon.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css?v=46">
+    <style>
+        .explorer-section {
+            padding: 8rem 0 4rem 0;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9ff 100%);
+        }
+
+        .explorer-header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .explorer-header h1 {
+            font-size: 2.5rem;
+            color: var(--text-color);
+            margin-bottom: 1rem;
+        }
+
+        .explorer-header p {
+            color: var(--text-light);
+            font-size: 1.1rem;
+        }
+
+        .network-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: linear-gradient(135deg, #F7931A 0%, #E8850A 100%);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 25px;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        .results-container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .result-card {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 1.5rem;
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--border-color);
+        }
+
+        .result-card h3 {
+            color: var(--primary-color);
+            margin-bottom: 1.5rem;
+            font-size: 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .result-card h3 .icon {
+            width: 24px;
+            height: 24px;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .info-item {
+            padding: 1rem;
+            background: var(--light-purple);
+            border-radius: 8px;
+        }
+
+        .info-item .label {
+            font-size: 0.85rem;
+            color: var(--text-light);
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .info-item .value {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-color);
+            word-break: break-all;
+        }
+
+        .info-item .value.large {
+            font-size: 1.5rem;
+        }
+
+        .tx-list {
+            margin-top: 1rem;
+        }
+
+        .tx-item {
+            padding: 1rem;
+            border-bottom: 1px solid var(--border-color);
+            display: grid;
+            grid-template-columns: auto 1fr auto;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .tx-item:last-child {
+            border-bottom: none;
+        }
+
+        .tx-type {
+            padding: 0.25rem 0.75rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .tx-type.in {
+            background: #d1fae5;
+            color: #059669;
+        }
+
+        .tx-type.out {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        .tx-details {
+            min-width: 0;
+        }
+
+        .tx-hash {
+            font-family: monospace;
+            font-size: 0.9rem;
+            color: var(--primary-color);
+            text-decoration: none;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            display: block;
+        }
+
+        .tx-hash:hover {
+            text-decoration: underline;
+        }
+
+        .tx-time {
+            color: var(--text-light);
+            font-size: 0.85rem;
+        }
+
+        .tx-value {
+            text-align: right;
+            font-weight: 500;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 3rem;
+            color: var(--text-light);
+        }
+
+        .loading .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--border-color);
+            border-top-color: var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem auto;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .error-message {
+            background: #fee2e2;
+            color: #dc2626;
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: 500;
+            margin-bottom: 2rem;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+
+        .btn-primary {
+            display: inline-block;
+            padding: 0.75rem 1.5rem;
+            background: var(--gradient-primary);
+            color: white;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: var(--transition);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        @media (max-width: 768px) {
+            .explorer-header h1 {
+                font-size: 1.75rem;
+            }
+
+            .tx-item {
+                grid-template-columns: 1fr;
+                gap: 0.5rem;
+            }
+
+            .tx-value {
+                text-align: left;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation (loaded dynamically) -->
+    <div id="navbar-placeholder"></div>
+
+    <!-- Explorer Section -->
+    <section class="explorer-section">
+        <div class="container">
+            <a href="investigate.html" class="back-link">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M19 12H5M12 19l-7-7 7-7"/>
+                </svg>
+                <span data-i18n="investigate.back">Back</span>
+            </a>
+
+            <div class="explorer-header">
+                <div class="network-badge">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"/>
+                        <path d="M12 6v12M15 9.5c0-1.5-1.5-2.5-3-2.5s-3 1-3 2.5 1.5 2.5 3 2.5 3 1 3 2.5-1.5 2.5-3 2.5"/>
+                    </svg>
+                    Bitcoin
+                </div>
+                <h1 data-i18n="investigate.title">Investigate Address</h1>
+                <p data-i18n="investigate.subtitle">Detailed analysis of the blockchain address</p>
+            </div>
+
+            <div class="results-container" id="results">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p data-i18n="investigate.loadingBitcoin">Loading Bitcoin transactions...</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-brand">
+                    <h3>TACC</h3>
+                    <p data-i18n="footer.tagline">The Americas Consulting Company</p>
+                    <p data-i18n="footer.description">Transforming organizations through strategic talent, technology, and services.</p>
+                </div>
+                <div class="footer-links">
+                    <div class="link-group">
+                        <h4 data-i18n="footer.quickLinks">Quick Links</h4>
+                        <a href="index.html" data-i18n="footer.home">Home</a>
+                        <a href="index.html#services" data-i18n="footer.services">Services</a>
+                        <a href="index.html#contact" data-i18n="footer.contact">Contact</a>
+                    </div>
+                    <div class="link-group">
+                        <h4 data-i18n="footer.getInTouch">Get In Touch</h4>
+                        <a href="mailto:hello@theamericasconsulting.com" data-i18n="footer.emailUs">Email Us</a>
+                        <a href="tel:+59892766400" data-i18n="footer.callUs">Call Us</a>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p data-i18n="footer.copyright">&copy; 2024 The Americas Consulting Company. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js?v=49"></script>
+    <script>
+        const resultsContainer = document.getElementById('results');
+        const MEMPOOL_API = 'https://mempool.space/api';
+        const COINGECKO_API = 'https://api.coingecko.com/api/v3';
+
+        let currentBtcPrice = null;
+        let historicalPrices = {}; // Cache for historical prices
+
+        // Fetch current BTC price
+        async function fetchCurrentPrice() {
+            try {
+                const response = await fetch(`${COINGECKO_API}/simple/price?ids=bitcoin&vs_currencies=usd`);
+                const data = await response.json();
+                return data.bitcoin.usd;
+            } catch (error) {
+                console.error('Failed to fetch BTC price:', error);
+                return null;
+            }
+        }
+
+        // Fetch historical prices for a date range (last 365 days only on free tier)
+        async function fetchHistoricalPrices(fromTimestamp, toTimestamp) {
+            try {
+                const response = await fetch(`${COINGECKO_API}/coins/bitcoin/market_chart/range?vs_currency=usd&from=${fromTimestamp}&to=${toTimestamp}`);
+                const data = await response.json();
+                if (data.prices) {
+                    // Build a map of date -> price
+                    for (const [ts, price] of data.prices) {
+                        const dateKey = new Date(ts).toISOString().split('T')[0];
+                        historicalPrices[dateKey] = price;
+                    }
+                }
+            } catch (error) {
+                console.error('Failed to fetch historical prices:', error);
+            }
+        }
+
+        // Get price for a specific timestamp
+        function getPriceForTimestamp(timestamp) {
+            if (!timestamp) return currentBtcPrice;
+            const dateKey = new Date(timestamp * 1000).toISOString().split('T')[0];
+            return historicalPrices[dateKey] || currentBtcPrice;
+        }
+
+        // Format USD value
+        function formatUSD(value) {
+            return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value);
+        }
+
+        // Get translations
+        function t(key) {
+            const lang = localStorage.getItem('preferredLanguage') || 'en';
+            const keys = key.split('.');
+            let value = translations[lang];
+            for (const k of keys) {
+                value = value?.[k];
+            }
+            return value || key;
+        }
+
+        // Show error
+        function showError(message) {
+            resultsContainer.innerHTML = `<div class="error-message">${message}</div>`;
+        }
+
+        // Format timestamp
+        function formatTimestamp(timestamp) {
+            if (!timestamp) return { date: 'Pending', time: '' };
+            const date = new Date(timestamp * 1000);
+            return {
+                date: date.toLocaleDateString(),
+                time: date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            };
+        }
+
+        // Log query to backend
+        async function logQuery(address, blockchain) {
+            try {
+                const authToken = localStorage.getItem('authToken');
+                const headers = { 'Content-Type': 'application/json' };
+                if (authToken) {
+                    headers['Authorization'] = `Bearer ${authToken}`;
+                }
+
+                fetch('/api/investigate', {
+                    method: 'POST',
+                    headers,
+                    body: JSON.stringify({
+                        address,
+                        blockchain,
+                        query_type: 'details'
+                    })
+                });
+            } catch (e) {
+                console.error('Failed to log query:', e);
+            }
+        }
+
+        // Update query result status after processing
+        function updateQueryResult(address, responseStatus) {
+            try {
+                const authToken = localStorage.getItem('authToken');
+                const headers = { 'Content-Type': 'application/json' };
+                if (authToken) {
+                    headers['Authorization'] = `Bearer ${authToken}`;
+                }
+
+                fetch('/api/query/result', {
+                    method: 'POST',
+                    headers,
+                    body: JSON.stringify({
+                        address,
+                        response_status: responseStatus
+                    })
+                });
+            } catch (e) {
+                console.error('Failed to update query result:', e);
+            }
+        }
+
+        // Fetch address data from Mempool API
+        async function fetchAddressData(address) {
+            const response = await fetch(`${MEMPOOL_API}/address/${address}`);
+            if (!response.ok) throw new Error('Failed to fetch address data');
+            return response.json();
+        }
+
+        // Fetch transactions from Mempool API
+        async function fetchTransactions(address) {
+            const response = await fetch(`${MEMPOOL_API}/address/${address}/txs`);
+            if (!response.ok) throw new Error('Failed to fetch transactions');
+            return response.json();
+        }
+
+        // Process transactions to determine in/out and values
+        function processTransactions(address, txs) {
+            return txs.map(tx => {
+                let valueIn = 0;
+                let valueOut = 0;
+
+                // Check inputs (money going out from this address)
+                for (const vin of tx.vin) {
+                    if (vin.prevout && vin.prevout.scriptpubkey_address === address) {
+                        valueOut += vin.prevout.value;
+                    }
+                }
+
+                // Check outputs (money coming in to this address)
+                for (const vout of tx.vout) {
+                    if (vout.scriptpubkey_address === address) {
+                        valueIn += vout.value;
+                    }
+                }
+
+                const netValue = valueIn - valueOut;
+                const type = netValue >= 0 ? 'in' : 'out';
+                const value = Math.abs(netValue) / 100000000; // Convert satoshis to BTC
+
+                return {
+                    txHash: tx.txid,
+                    type,
+                    value,
+                    timestamp: tx.status.block_time,
+                    blockNumber: tx.status.block_height,
+                    confirmed: tx.status.confirmed
+                };
+            });
+        }
+
+        // Calculate yearly summary with USD values
+        function calculateYearlySummary(transactions) {
+            const summary = {};
+            for (const tx of transactions) {
+                if (!tx.timestamp) continue;
+                const year = new Date(tx.timestamp * 1000).getFullYear();
+                if (!summary[year]) {
+                    summary[year] = { received: 0, sent: 0, receivedUSD: 0, sentUSD: 0 };
+                }
+                const price = getPriceForTimestamp(tx.timestamp);
+                const usdValue = tx.value * (price || 0);
+
+                if (tx.type === 'in') {
+                    summary[year].received += tx.value;
+                    summary[year].receivedUSD += usdValue;
+                } else {
+                    summary[year].sent += tx.value;
+                    summary[year].sentUSD += usdValue;
+                }
+            }
+            return summary;
+        }
+
+        // Display results
+        function displayResults(address, data, transactions) {
+            const balance = (data.chain_stats.funded_txo_sum - data.chain_stats.spent_txo_sum) / 100000000;
+            const txCount = data.chain_stats.tx_count;
+            const totalReceived = data.chain_stats.funded_txo_sum / 100000000;
+            const totalSent = data.chain_stats.spent_txo_sum / 100000000;
+            const balanceUSD = currentBtcPrice ? balance * currentBtcPrice : null;
+
+            const yearlySummary = calculateYearlySummary(transactions);
+            const years = Object.keys(yearlySummary).sort((a, b) => b - a);
+
+            let html = `
+                <div class="result-card">
+                    <h3>
+                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                            <circle cx="12" cy="7" r="4"/>
+                        </svg>
+                        ${t('investigate.addressInfo')}
+                    </h3>
+                    ${currentBtcPrice ? `
+                    <div style="background: linear-gradient(135deg, #F7931A 0%, #E8850A 100%); color: white; padding: 0.75rem 1rem; border-radius: 8px; margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center;">
+                        <span>${t('investigate.currentBtcPrice')}</span>
+                        <strong>${formatUSD(currentBtcPrice)}</strong>
+                    </div>
+                    ` : ''}
+                    <div class="info-grid">
+                        <div class="info-item" style="grid-column: span 2;">
+                            <div class="label">${t('investigate.address')}</div>
+                            <div class="value" style="font-size: 0.85rem; font-family: monospace;">
+                                ${address}
+                            </div>
+                        </div>
+                        <div class="info-item">
+                            <div class="label">${t('explorer.balance')}</div>
+                            <div class="value large">${balance.toFixed(8)} BTC</div>
+                            ${balanceUSD ? `<div class="value" style="color: var(--text-light); font-size: 0.9rem;">${formatUSD(balanceUSD)}</div>` : ''}
+                        </div>
+                        <div class="info-item">
+                            <div class="label">${t('explorer.transactions')}</div>
+                            <div class="value">${txCount.toLocaleString()}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="label">${t('investigate.total')} ${t('investigate.received')}</div>
+                            <div class="value" style="color: #059669;">${totalReceived.toFixed(8)} BTC</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="label">${t('investigate.total')} ${t('investigate.sent')}</div>
+                            <div class="value" style="color: #dc2626;">${totalSent.toFixed(8)} BTC</div>
+                        </div>
+                    </div>
+                    <div style="margin-top: 1.5rem;">
+                        <a href="https://blockstream.info/address/${address}" target="_blank" rel="noopener" class="btn-primary">
+                            ${t('explorer.viewOnExplorerBtn')} Blockstream →
+                        </a>
+                    </div>
+                </div>
+            `;
+
+            // Yearly summary section
+            if (years.length > 0) {
+                html += `
+                    <div class="result-card">
+                        <h3>
+                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                                <line x1="16" y1="2" x2="16" y2="6"/>
+                                <line x1="8" y1="2" x2="8" y2="6"/>
+                                <line x1="3" y1="10" x2="21" y2="10"/>
+                            </svg>
+                            ${t('investigate.yearlySummary')}
+                        </h3>
+                        <div class="info-grid">
+                `;
+
+                for (const year of years) {
+                    const summary = yearlySummary[year];
+                    html += `
+                        <div class="info-item">
+                            <div class="label">${year}</div>
+                            <div class="value" style="color: #059669;">+${summary.received.toFixed(8)} BTC ${t('investigate.received')}</div>
+                            ${summary.receivedUSD ? `<div style="color: #059669; font-size: 0.85rem;">${formatUSD(summary.receivedUSD)}</div>` : ''}
+                            <div class="value" style="color: #dc2626; margin-top: 0.5rem;">-${summary.sent.toFixed(8)} BTC ${t('investigate.sent')}</div>
+                            ${summary.sentUSD ? `<div style="color: #dc2626; font-size: 0.85rem;">${formatUSD(summary.sentUSD)}</div>` : ''}
+                        </div>
+                    `;
+                }
+
+                html += `</div></div>`;
+            }
+
+            // Transactions section
+            html += `
+                <div class="result-card">
+                    <h3>
+                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                        </svg>
+                        ${t('explorer.transactions')} (${transactions.length})
+                    </h3>
+            `;
+
+            if (transactions.length === 0) {
+                html += `<p style="color: var(--text-light); text-align: center; padding: 2rem;">${t('investigate.noTxFound')}</p>`;
+            } else {
+                html += `<div class="tx-list">`;
+                for (const tx of transactions) {
+                    const shortHash = tx.txHash.slice(0, 10) + '...' + tx.txHash.slice(-8);
+                    const timeInfo = formatTimestamp(tx.timestamp);
+                    const timeDisplay = tx.timestamp
+                        ? `${timeInfo.date} ${timeInfo.time}`
+                        : t('investigate.pendingConfirmation');
+                    const txPrice = getPriceForTimestamp(tx.timestamp);
+                    const txUsdValue = txPrice ? tx.value * txPrice : null;
+
+                    html += `
+                        <div class="tx-item">
+                            <span class="tx-type ${tx.type}">${tx.type === 'in' ? 'IN' : 'OUT'}</span>
+                            <div class="tx-details">
+                                <a href="https://blockstream.info/tx/${tx.txHash}" target="_blank" rel="noopener" class="tx-hash">${shortHash}</a>
+                                <div class="tx-time">${timeDisplay}${txPrice ? ` · BTC @ ${formatUSD(txPrice)}` : ''}</div>
+                            </div>
+                            <div class="tx-value" style="color: ${tx.type === 'in' ? '#059669' : '#dc2626'};">
+                                ${tx.type === 'in' ? '+' : '-'}${tx.value.toFixed(8)} BTC
+                                ${txUsdValue ? `<div style="font-size: 0.85rem;">${formatUSD(txUsdValue)}</div>` : ''}
+                            </div>
+                        </div>
+                    `;
+                }
+                html += `</div>`;
+            }
+
+            html += `</div>`;
+
+            resultsContainer.innerHTML = html;
+        }
+
+        // Validate Bitcoin address
+        function isValidBitcoinAddress(address) {
+            // Legacy addresses (1... or 3...)
+            const legacyPattern = /^[13][a-km-zA-HJ-NP-Z1-9]{25,34}$/;
+            // SegWit addresses (bc1...)
+            const segwitPattern = /^(bc1|tb1)[a-z0-9]{39,59}$/i;
+            return legacyPattern.test(address) || segwitPattern.test(address);
+        }
+
+        // Main initialization
+        async function init() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const address = urlParams.get('address');
+
+            if (!address || !isValidBitcoinAddress(address)) {
+                showError(t('investigate.invalidParams'));
+                return;
+            }
+
+            try {
+                console.log('Fetching data for address:', address);
+
+                // Log query to backend
+                logQuery(address, 'Bitcoin');
+
+                // Fetch address data, transactions, and current price in parallel
+                const [addressData, txs, btcPrice] = await Promise.all([
+                    fetchAddressData(address),
+                    fetchTransactions(address),
+                    fetchCurrentPrice()
+                ]);
+
+                currentBtcPrice = btcPrice;
+                console.log('Current BTC price:', currentBtcPrice);
+                console.log('Address data:', addressData);
+                console.log('Raw transactions:', txs.length);
+
+                const transactions = processTransactions(address, txs);
+                console.log('Processed transactions:', transactions.length);
+
+                // Fetch historical prices for transactions within last 365 days
+                if (transactions.length > 0) {
+                    const now = Math.floor(Date.now() / 1000);
+                    const oneYearAgo = now - (365 * 24 * 60 * 60);
+
+                    // Find the oldest transaction within the last year
+                    const recentTxs = transactions.filter(tx => tx.timestamp && tx.timestamp > oneYearAgo);
+                    if (recentTxs.length > 0) {
+                        const oldestRecentTx = Math.min(...recentTxs.map(tx => tx.timestamp));
+                        console.log('Fetching historical prices from', new Date(oldestRecentTx * 1000).toLocaleDateString());
+                        await fetchHistoricalPrices(oldestRecentTx, now);
+                        console.log('Historical prices loaded:', Object.keys(historicalPrices).length, 'days');
+                    }
+                }
+
+                displayResults(address, addressData, transactions);
+                // Update query result: found if we got data
+                const hasData = transactions.length > 0 || addressData.chain_stats?.funded_txo_count > 0;
+                updateQueryResult(address, hasData ? 'found' : 'no_data');
+            } catch (error) {
+                console.error('Error fetching Bitcoin data:', error);
+                showError(t('investigate.errorLoading'));
+                updateQueryResult(address, 'no_data');
+            }
+        }
+
+        // Run on page load
+        init();
+    </script>
+</body>
+</html>

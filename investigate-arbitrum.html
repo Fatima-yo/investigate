@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Investigate Arbitrum - TACC</title>
+    <link rel="icon" type="image/x-icon" href="assets/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="assets/favicon-16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="assets/apple-touch-icon.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css?v=46">
+    <style>
+        .explorer-section {
+            padding: 8rem 0 4rem 0;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9ff 100%);
+        }
+
+        .explorer-header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .explorer-header h1 {
+            font-size: 2.5rem;
+            color: var(--text-color);
+            margin-bottom: 1rem;
+        }
+
+        .explorer-header p {
+            color: var(--text-light);
+            font-size: 1.1rem;
+        }
+
+        .network-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: linear-gradient(135deg, #28A0F0 0%, #1E8AD0 100%);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 25px;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        .results-container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .result-card {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 1.5rem;
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--border-color);
+        }
+
+        .result-card h3 {
+            color: var(--primary-color);
+            margin-bottom: 1.5rem;
+            font-size: 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .result-card h3 .icon {
+            width: 24px;
+            height: 24px;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .info-item {
+            padding: 1rem;
+            background: var(--light-purple);
+            border-radius: 8px;
+        }
+
+        .info-item .label {
+            font-size: 0.85rem;
+            color: var(--text-light);
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .info-item .value {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-color);
+            word-break: break-all;
+        }
+
+        .info-item .value.large {
+            font-size: 1.5rem;
+        }
+
+        .tx-list {
+            margin-top: 1rem;
+        }
+
+        .tx-item {
+            padding: 1rem;
+            border-bottom: 1px solid var(--border-color);
+            display: grid;
+            grid-template-columns: auto 1fr auto;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .tx-item:last-child {
+            border-bottom: none;
+        }
+
+        .tx-type {
+            padding: 0.25rem 0.75rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .tx-type.in {
+            background: #d1fae5;
+            color: #059669;
+        }
+
+        .tx-type.out {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        .tx-details {
+            min-width: 0;
+        }
+
+        .tx-hash {
+            font-family: monospace;
+            font-size: 0.9rem;
+            color: var(--primary-color);
+            text-decoration: none;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            display: block;
+        }
+
+        .tx-hash:hover {
+            text-decoration: underline;
+        }
+
+        .tx-time {
+            color: var(--text-light);
+            font-size: 0.85rem;
+        }
+
+        .tx-value {
+            text-align: right;
+            font-weight: 500;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 3rem;
+            color: var(--text-light);
+        }
+
+        .loading .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--border-color);
+            border-top-color: var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem auto;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .error-message {
+            background: #fee2e2;
+            color: #dc2626;
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: 500;
+            margin-bottom: 2rem;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+
+        .btn-primary {
+            display: inline-block;
+            padding: 0.75rem 1.5rem;
+            background: var(--gradient-primary);
+            color: white;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: var(--transition);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        @media (max-width: 768px) {
+            .explorer-header h1 {
+                font-size: 1.75rem;
+            }
+
+            .tx-item {
+                grid-template-columns: 1fr;
+                gap: 0.5rem;
+            }
+
+            .tx-value {
+                text-align: left;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation (loaded dynamically) -->
+    <div id="navbar-placeholder"></div>
+
+    <!-- Explorer Section -->
+    <section class="explorer-section">
+        <div class="container">
+            <a href="investigate.html" class="back-link">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M19 12H5M12 19l-7-7 7-7"/>
+                </svg>
+                <span data-i18n="investigate.back">Back</span>
+            </a>
+
+            <div class="explorer-header">
+                <div class="network-badge">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+                        <path d="M2 17l10 5 10-5"/>
+                        <path d="M2 12l10 5 10-5"/>
+                    </svg>
+                    Arbitrum
+                </div>
+                <h1 data-i18n="investigate.title">Investigate Address</h1>
+                <p data-i18n="investigate.subtitle">Detailed analysis of the blockchain address</p>
+            </div>
+
+            <div class="results-container" id="results">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p data-i18n="investigate.loadingTransactions">Loading USDT/USDC transactions...</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-brand">
+                    <h3>TACC</h3>
+                    <p data-i18n="footer.tagline">The Americas Consulting Company</p>
+                    <p data-i18n="footer.description">Transforming organizations through strategic talent, technology, and services.</p>
+                </div>
+                <div class="footer-links">
+                    <div class="link-group">
+                        <h4 data-i18n="footer.quickLinks">Quick Links</h4>
+                        <a href="index.html" data-i18n="footer.home">Home</a>
+                        <a href="index.html#services" data-i18n="footer.services">Services</a>
+                        <a href="index.html#contact" data-i18n="footer.contact">Contact</a>
+                    </div>
+                    <div class="link-group">
+                        <h4 data-i18n="footer.getInTouch">Get In Touch</h4>
+                        <a href="mailto:hello@theamericasconsulting.com" data-i18n="footer.emailUs">Email Us</a>
+                        <a href="tel:+59892766400" data-i18n="footer.callUs">Call Us</a>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p data-i18n="footer.copyright">&copy; 2024 The Americas Consulting Company. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js?v=49"></script>
+    <script src="blockchain-api.js?v=4"></script>
+    <script>
+        // Chain configuration
+        const CHAIN_ID = 'arbitrum';
+        const chain = BlockchainAPI.getChain(CHAIN_ID);
+        const resultsContainer = document.getElementById('results');
+
+        // Get translations
+        function t(key) {
+            const lang = localStorage.getItem('preferredLanguage') || 'en';
+            const keys = key.split('.');
+            let value = translations[lang];
+            for (const k of keys) {
+                value = value?.[k];
+            }
+            return value || key;
+        }
+
+        // Show error
+        function showError(message) {
+            resultsContainer.innerHTML = `<div class="error-message">${message}</div>`;
+        }
+
+        // Display results
+        function displayResults(address, data, transfers) {
+            const yearlySummary = BlockchainAPI.calculateYearlySummary(transfers);
+            const years = Object.keys(yearlySummary).sort((a, b) => b - a);
+
+            let html = `
+                <div class="result-card">
+                    <h3>
+                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                            <circle cx="12" cy="7" r="4"/>
+                        </svg>
+                        ${t('investigate.addressInfo')}
+                    </h3>
+                    <div class="info-grid">
+                        <div class="info-item" style="grid-column: span 2;">
+                            <div class="label">${t('investigate.address')}</div>
+                            <div class="value" style="font-size: 0.85rem; font-family: monospace;">
+                                ${address}
+                            </div>
+                        </div>
+                        <div class="info-item">
+                            <div class="label">${t('explorer.type')}</div>
+                            <div class="value">${data.isContract ? t('explorer.smartContract') : t('explorer.eoaUser')}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="label">${t('explorer.balance')}</div>
+                            <div class="value large">${data.balance.toFixed(6)} ${chain.symbol}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="label">USDT ${t('explorer.balance')}</div>
+                            <div class="value" style="color: #22c55e;">${data.usdtBalance.toFixed(2)} USDT</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="label">USDC ${t('explorer.balance')}</div>
+                            <div class="value" style="color: #3b82f6;">${data.usdcBalance.toFixed(2)} USDC</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="label">${t('explorer.transactions')}</div>
+                            <div class="value">${data.txCount.toLocaleString()}</div>
+                        </div>
+                    </div>
+                    <div style="margin-top: 1.5rem;">
+                        <a href="${chain.explorer}/address/${address}" target="_blank" rel="noopener" class="btn-primary">
+                            ${t('explorer.viewOnExplorerBtn')} Arbiscan →
+                        </a>
+                    </div>
+                </div>
+            `;
+
+            if (years.length > 0 && transfers.some(tx => tx.timestamp)) {
+                html += `
+                    <div class="result-card">
+                        <h3>
+                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                                <line x1="16" y1="2" x2="16" y2="6"/>
+                                <line x1="8" y1="2" x2="8" y2="6"/>
+                                <line x1="3" y1="10" x2="21" y2="10"/>
+                            </svg>
+                            ${t('investigate.yearlySummary')}
+                        </h3>
+                        <div class="info-grid">
+                `;
+                for (const year of years) {
+                    const summary = yearlySummary[year];
+                    html += `
+                        <div class="info-item">
+                            <div class="label">${year}</div>
+                            <div class="value" style="color: #22c55e;">+${summary.received.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} ${t('investigate.received')}</div>
+                            <div class="value" style="color: #dc2626; margin-top: 0.25rem;">-${summary.sent.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} ${t('investigate.sent')}</div>
+                        </div>
+                    `;
+                }
+                html += `</div></div>`;
+            }
+
+            html += `
+                <div class="result-card">
+                    <h3>
+                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                        </svg>
+                        ${t('investigate.stablecoinTransactions')} (${transfers.length})
+                    </h3>
+            `;
+
+            if (transfers.length === 0) {
+                html += `<p style="color: var(--text-light); text-align: center; padding: 2rem;">${t('investigate.noTransactions')}</p>`;
+            } else {
+                html += `<div class="tx-list">`;
+                for (const tx of transfers) {
+                    const shortHash = tx.txHash.slice(0, 10) + '...' + tx.txHash.slice(-8);
+                    const timeInfo = BlockchainAPI.formatTimestamp(tx.timestamp);
+                    const timeDisplay = tx.timestamp
+                        ? `${timeInfo.date} ${timeInfo.time}`
+                        : `Block #${tx.blockNumber.toLocaleString()}`;
+
+                    html += `
+                        <div class="tx-item">
+                            <span class="tx-type ${tx.type}">${tx.type === 'in' ? 'IN' : 'OUT'}</span>
+                            <div class="tx-details">
+                                <a href="${chain.explorer}/tx/${tx.txHash}" target="_blank" rel="noopener" class="tx-hash">${shortHash}</a>
+                                <div class="tx-time">${timeDisplay}</div>
+                            </div>
+                            <div class="tx-value" style="color: ${tx.color};">
+                                ${tx.type === 'in' ? '+' : '-'}${tx.value.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} ${tx.symbol}
+                            </div>
+                        </div>
+                    `;
+                }
+                html += `</div>`;
+            }
+
+            html += `</div>`;
+            resultsContainer.innerHTML = html;
+        }
+
+        // Log query to backend
+        function logQuery(address, blockchain) {
+            try {
+                const authToken = localStorage.getItem('authToken');
+                const headers = { 'Content-Type': 'application/json' };
+                if (authToken) {
+                    headers['Authorization'] = `Bearer ${authToken}`;
+                }
+
+                fetch('/api/investigate', {
+                    method: 'POST',
+                    headers,
+                    body: JSON.stringify({
+                        address,
+                        blockchain,
+                        query_type: 'details'
+                    })
+                });
+            } catch (e) {
+                console.error('Failed to log query:', e);
+            }
+        }
+
+        // Update query result status after processing
+        function updateQueryResult(address, responseStatus) {
+            try {
+                const authToken = localStorage.getItem('authToken');
+                const headers = { 'Content-Type': 'application/json' };
+                if (authToken) {
+                    headers['Authorization'] = `Bearer ${authToken}`;
+                }
+
+                fetch('/api/query/result', {
+                    method: 'POST',
+                    headers,
+                    body: JSON.stringify({
+                        address,
+                        response_status: responseStatus
+                    })
+                });
+            } catch (e) {
+                console.error('Failed to update query result:', e);
+            }
+        }
+
+        async function init() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const address = urlParams.get('address');
+
+            if (!address || !/^0x[a-fA-F0-9]{40}$/.test(address)) {
+                showError(t('investigate.invalidParams'));
+                return;
+            }
+
+            // Log query to backend
+            logQuery(address, 'Arbitrum');
+
+            try {
+                const [addressData, transfers] = await Promise.all([
+                    BlockchainAPI.fetchAddressData(CHAIN_ID, address),
+                    BlockchainAPI.fetchTokenTransfersAPI(CHAIN_ID, address)
+                ]);
+                displayResults(address, addressData, transfers);
+                const hasData = transfers.length > 0 || addressData?.txCount > 0;
+                updateQueryResult(address, hasData ? 'found' : 'no_data');
+            } catch (error) {
+                console.error('Error:', error);
+                showError(t('investigate.errorLoading'));
+                updateQueryResult(address, 'no_data');
+            }
+        }
+
+        init();
+    </script>
+</body>
+</html>
