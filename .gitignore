@@ -1,0 +1,11 @@
+# Configuration (contains API keys)
+config.json
+
+# Dependencies
+node_modules/
+
+# Database
+*.db
+
+# Logs
+*.log
