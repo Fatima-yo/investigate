@@ -7,6 +7,9 @@ const path = require('path');
 const db = require('./database');
 const auth = require('./auth');
 
+// Initialize database schema
+db.initializeSchema();
+
 const app = express();
 const PORT = process.env.PORT || 3001;
 

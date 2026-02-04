@@ -1,0 +1,21 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(systemctl status:*)",
+      "Bash(sudo nginx:*)",
+      "Bash(sudo systemctl reload:*)",
+      "Bash(curl:*)",
+      "Bash(ss:*)",
+      "Bash(netstat:*)",
+      "Bash(ps:*)",
+      "Bash(sudo journalctl:*)",
+      "Bash(sudo systemctl restart:*)",
+      "Bash(sudo systemctl status:*)",
+      "Bash(grep:*)",
+      "Bash(ls:*)",
+      "Bash(find:*)",
+      "Bash(npm install:*)",
+      "Bash(systemctl list-units:*)"
+    ]
+  }
+}
