@@ -1848,8 +1848,8 @@
 
         // Network info for transaction lookups
         const txNetworkInfo = {
-            'https://eth.llamarpc.com': { name: 'Ethereum', symbol: 'ETH', explorer: 'https://etherscan.io' },
-            'https://polygon.llamarpc.com': { name: 'Polygon', symbol: 'MATIC', explorer: 'https://polygonscan.com' },
+            'https://cloudflare-eth.com': { name: 'Ethereum', symbol: 'ETH', explorer: 'https://etherscan.io' },
+            'https://rpc.ankr.com/polygon': { name: 'Polygon', symbol: 'MATIC', explorer: 'https://polygonscan.com' },
             'https://arb1.arbitrum.io/rpc': { name: 'Arbitrum', symbol: 'ETH', explorer: 'https://arbiscan.io' },
             'https://mainnet.optimism.io': { name: 'Optimism', symbol: 'ETH', explorer: 'https://optimistic.etherscan.io' },
             'https://mainnet.base.org': { name: 'Base', symbol: 'ETH', explorer: 'https://basescan.org' },
@@ -2593,14 +2593,14 @@
         // Fetch data for all EVM chains in parallel
         async function fetchAllEVMData(address) {
             const rpcEndpoints = {
-                ethereum: 'https://eth.llamarpc.com',
-                polygon: 'https://polygon.llamarpc.com',
+                ethereum: 'https://cloudflare-eth.com',
+                polygon: 'https://rpc.ankr.com/polygon',
                 bsc: 'https://bsc-dataseed.binance.org',
                 arbitrum: 'https://arb1.arbitrum.io/rpc',
                 optimism: 'https://mainnet.optimism.io',
                 base: 'https://mainnet.base.org',
                 avalanche: 'https://api.avax.network/ext/bc/C/rpc',
-                fantom: 'https://rpc.ftm.tools'
+                fantom: 'https://rpc.ankr.com/fantom'
             };
 
             // Extended networks config
